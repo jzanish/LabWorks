@@ -1,0 +1,298 @@
+[
+    {
+        "name": "Prep AM Nons",
+        "role_required": "Prep Staff",
+        "is_flexible": false,
+        "can_remain_open": false,
+        "start_time": "6:00",
+        "end_time": "14:30",
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto EUS",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Admin",
+        "role_required": "Admin",
+        "is_flexible": true,
+        "can_remain_open": true,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto FLOAT",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto IMG",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": true,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto MCY",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Tuesday",
+            "Wednesday",
+            "Thursday"
+        ]
+    },
+    {
+        "name": "Cyto UTD",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto UTD IMG",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto 2ND (1)",
+        "role_required": "Cytologist",
+        "is_flexible": false,
+        "can_remain_open": false,
+        "start_time": "11:00",
+        "end_time": "19:30",
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto 2ND (2)",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": "11:00",
+        "end_time": "19:30",
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto APERIO",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Prep GYN",
+        "role_required": "Prep Staff",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Prep EBUS",
+        "role_required": "Prep Staff",
+        "is_flexible": true,
+        "can_remain_open": true,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Prep NONS 1",
+        "role_required": "Prep Staff",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": "11:00",
+        "end_time": "19:30",
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Prep NONS 2",
+        "role_required": "Prep Staff",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": "11:00",
+        "end_time": "19:30",
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Prep Clerical",
+        "role_required": "Prep Staff",
+        "is_flexible": true,
+        "can_remain_open": true,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto Nons 1",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto Nons 2",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": true,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Prep FNA",
+        "role_required": "Prep Staff",
+        "is_flexible": true,
+        "can_remain_open": true,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    },
+    {
+        "name": "Cyto FNA",
+        "role_required": "Cytologist",
+        "is_flexible": true,
+        "can_remain_open": false,
+        "start_time": null,
+        "end_time": null,
+        "days_of_week": [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday"
+        ]
+    }
+]

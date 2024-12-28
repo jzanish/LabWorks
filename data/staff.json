@@ -1,0 +1,357 @@
+[
+    {
+        "initials": "JZ",
+        "start_time": "07:30",
+        "end_time": "16:00",
+        "role": "Cytologist",
+        "trained_shifts": [],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "CL",
+        "start_time": "06:00",
+        "end_time": "14:30",
+        "role": "Prep Staff",
+        "trained_shifts": [
+            "Prep AM Nons",
+            "Prep GYN",
+            "Prep EBUS",
+            "Prep FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "KEK",
+        "start_time": "11:00",
+        "end_time": "19:30",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto 2ND (1)"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "XM",
+        "start_time": "11:00",
+        "end_time": "19:30",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto 2ND (2)"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "TL",
+        "start_time": "06:30",
+        "end_time": "15:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto FLOAT",
+            "Cyto IMG",
+            "Cyto MCY",
+            "Cyto UTD",
+            "Cyto UTD IMG",
+            "Cyto Nons 1",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "NM",
+        "start_time": "06:30",
+        "end_time": "15:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto FLOAT",
+            "Cyto IMG",
+            "Cyto APERIO",
+            "Cyto Nons 1",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "CMM",
+        "start_time": "06:30",
+        "end_time": "15:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto FLOAT",
+            "Cyto IMG",
+            "Cyto UTD",
+            "Cyto UTD IMG",
+            "Cyto Nons 1",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "GN",
+        "start_time": "05:45",
+        "end_time": "14:15",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto FLOAT",
+            "Cyto IMG",
+            "Cyto APERIO",
+            "Cyto Nons 1",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "DS",
+        "start_time": "07:30",
+        "end_time": "16:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto FLOAT",
+            "Cyto IMG",
+            "Cyto MCY",
+            "Cyto Nons 1",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "HH",
+        "start_time": "07:30",
+        "end_time": "16:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto FLOAT",
+            "Cyto IMG",
+            "Cyto UTD",
+            "Cyto UTD IMG",
+            "Cyto Nons 1",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "CS",
+        "start_time": "07:30",
+        "end_time": "16:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto FLOAT",
+            "Cyto IMG",
+            "Cyto UTD",
+            "Cyto UTD IMG",
+            "Cyto Nons 1",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "MB",
+        "start_time": "9:00",
+        "end_time": "17:30",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto IMG"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": true
+    },
+    {
+        "initials": "AS",
+        "start_time": "7:30",
+        "end_time": "16:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto FLOAT",
+            "Cyto IMG",
+            "Cyto UTD",
+            "Cyto UTD IMG",
+            "Cyto Nons 1",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "CAM",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto FLOAT",
+            "Cyto IMG",
+            "Cyto MCY",
+            "Cyto UTD",
+            "Cyto UTD IMG",
+            "Cyto Nons 1",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "CML",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto IMG",
+            "Cyto Nons 2"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": true
+    },
+    {
+        "initials": "LB",
+        "start_time": "06:30",
+        "end_time": "15:00",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto IMG",
+            "Cyto Nons 2",
+            "Cyto FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": true
+    },
+    {
+        "initials": "EM",
+        "start_time": "06:00",
+        "end_time": "14:30",
+        "role": "Prep Staff",
+        "trained_shifts": [
+            "Prep AM Nons",
+            "Prep GYN",
+            "Prep EBUS",
+            "Prep FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "KL",
+        "start_time": "06:15",
+        "end_time": "14:45",
+        "role": "Prep Staff",
+        "trained_shifts": [
+            "Prep GYN",
+            "Prep EBUS",
+            "Prep Clerical",
+            "Prep FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "TS",
+        "start_time": "11:00",
+        "end_time": "19:30",
+        "role": "Prep Staff",
+        "trained_shifts": [
+            "Prep EBUS",
+            "Prep NONS 1",
+            "Prep NONS 2",
+            "Prep FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "TG",
+        "start_time": "11:00",
+        "end_time": "1930",
+        "role": "Prep Staff",
+        "trained_shifts": [
+            "Prep EBUS",
+            "Prep NONS 1",
+            "Prep NONS 2",
+            "Prep FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    },
+    {
+        "initials": "LH",
+        "start_time": "09:00",
+        "end_time": "17:00",
+        "role": "Prep Staff",
+        "trained_shifts": [
+            "Prep GYN",
+            "Prep EBUS",
+            "Prep NONS 1",
+            "Prep NONS 2",
+            "Prep FNA"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
+    }
+]

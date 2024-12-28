@@ -1,0 +1,20 @@
+[
+    {
+        "initials": "NM",
+        "date": "2024-01-02",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2024-01-04",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2024-01-04",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    }
+]

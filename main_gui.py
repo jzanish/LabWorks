@@ -15,16 +15,20 @@ from availability_management.manager import AvailabilityManager
 from scheduler.scheduler import ORToolsScheduler
 from scheduler.scheduler_gui import SchedulerTab
 
+# NEW IMPORTS for constraints
+from constraint_editor.manager import ConstraintsManager
+from constraint_editor.constraint_gui import ConstraintsEditorTab
+
 
 class CytologyScheduler:
     def __init__(self, root):
         self.root = root
-        self.root.title("LabWorks - Main GUI")
-        self.root.geometry("1000x700")
+        self.root.title("CYTOLOGY SCHEDULER")
+        self.root.geometry("1000x900")
 
         # Status Bar
         self.status_var = tk.StringVar()
-        self.status_var.set("Welcome to LabWorks!")
+        self.status_var.set("Welcome!")
         self.status_bar = ttk.Label(self.root, textvariable=self.status_var, relief=tk.SUNKEN, anchor="w")
         self.status_bar.pack(side="bottom", fill="x")
 
@@ -33,6 +37,10 @@ class CytologyScheduler:
             self.staff_manager = StaffManager(shift_manager=self.shift_manager)
             self.availability_manager = AvailabilityManager()
             self.ortools_scheduler = ORToolsScheduler(self.staff_manager, self.shift_manager, self.availability_manager)
+
+            # Initialize ConstraintsManager after we have staff/shift managers
+            self.constraints_manager = ConstraintsManager(self.staff_manager, self.shift_manager)
+
         except Exception as e:
             messagebox.showerror("Initialization Error", f"Failed to init managers: {e}")
             return
@@ -50,6 +58,16 @@ class CytologyScheduler:
         self.notebook.add(self.shift_tab_frame, text="Shift Management")
         self.shift_tab = ShiftTab(self.shift_tab_frame, self.shift_manager)
 
+        # Constraints Tab
+        self.constraints_tab_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.constraints_tab_frame, text="Constraints")
+        self.constraints_tab = ConstraintsEditorTab(
+            self.constraints_tab_frame,
+            self.constraints_manager,
+            self.staff_manager,
+            self.shift_manager,
+        )
+
         # Availability Tab
         self.availability_tab_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.availability_tab_frame, text="Availability")
@@ -62,7 +80,12 @@ class CytologyScheduler:
         # Scheduler Tab
         self.scheduler_tab_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.scheduler_tab_frame, text="Scheduler")
-        self.scheduler_tab = SchedulerTab(self.scheduler_tab_frame, self.ortools_scheduler, self.staff_manager)
+        self.scheduler_tab = SchedulerTab(
+            self.scheduler_tab_frame,
+            self.ortools_scheduler,
+            self.staff_manager
+        )
+
 
         self._create_global_controls()
 
@@ -83,6 +106,9 @@ class CytologyScheduler:
             self.staff_tab.populate_listbox()
             self.shift_tab._refresh_shift_list()
             self.availability_tab.populate_listbox()
+            # If your constraints tab has a refresh method, call it too:
+            self.constraints_tab._populate_constraint_list()
+
             self.status_var.set("All tabs refreshed!")
             print("DEBUG: All tabs refreshed successfully.")
         except Exception as e:
@@ -95,6 +121,9 @@ class CytologyScheduler:
             self.staff_manager.save_data()
             self.shift_manager.save_data()
             self.availability_manager.save_data()
+            # Also save constraints:
+            self.constraints_manager.save_data()
+
             messagebox.showinfo("Data Saved", "All data saved successfully!")
             print("DEBUG: All data saved successfully.")
         except Exception as e:

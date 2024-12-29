@@ -1,20 +1,92 @@
 [
     {
         "initials": "NM",
-        "date": "2024-01-02",
+        "date": "2025-01-14",
         "reason": "0.5 FTE",
         "is_holiday": false
     },
     {
         "initials": "NM",
-        "date": "2024-01-04",
+        "date": "2025-01-16",
         "reason": "0.5 FTE",
         "is_holiday": false
     },
     {
+        "initials": "TL",
+        "date": "2025-01-16",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-01-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "AS",
+        "date": "2025-01-13",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "AS",
+        "date": "2025-01-14",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-01-15",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-01-16",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-01-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
         "initials": "KL",
-        "date": "2024-01-04",
-        "reason": "0.8 FTE",
+        "date": "2025-01-16",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-01-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TG",
+        "date": "2025-01-13",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "XM",
+        "date": "2025-01-10",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-01-07",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-01-09",
+        "reason": "PTO",
         "is_holiday": false
     }
 ]

@@ -1,0 +1,418 @@
+{
+    "start_date": "2025-02-10",
+    "end_date": "2025-02-14",
+    "assignments": {
+        "2025-02-10": [
+            {
+                "shift": "Admin",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto APERIO",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto MCY",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": ""
+            }
+        ],
+        "2025-02-11": [
+            {
+                "shift": "Admin",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto APERIO",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto MCY",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": ""
+            }
+        ],
+        "2025-02-12": [
+            {
+                "shift": "Admin",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto APERIO",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto MCY",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": ""
+            }
+        ],
+        "2025-02-13": [
+            {
+                "shift": "Admin",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto APERIO",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto MCY",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": ""
+            }
+        ],
+        "2025-02-14": [
+            {
+                "shift": "Admin",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto APERIO",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto MCY",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": ""
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": ""
+            }
+        ]
+    },
+    "created_at": "2025-01-02T00:04:10.414265",
+    "version": "20250102_000410"
+}

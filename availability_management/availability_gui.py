@@ -2,6 +2,8 @@
 
 import tkinter as tk
 from tkinter import ttk, messagebox
+import datetime
+from datetime import datetime, timedelta
 import json
 
 class AvailabilityTab:
@@ -46,47 +48,121 @@ class AvailabilityTab:
 
     def add_availability_popup(self):
         popup = tk.Toplevel(self.parent_frame)
-        popup.title("Add Availability")
+        popup.title("Add Availability (Multiple Dates / Range)")
 
         # 1) Get the list of staff from staff_manager
         staff_list = self.staff_manager.list_staff()
-        # 2) Extract initials
         valid_initials = [s.initials for s in staff_list]
 
         tk.Label(popup, text="Staff Initials:").pack()
         staff_initials_combo = ttk.Combobox(
             popup,
-            values=valid_initials,
+            values=sorted(valid_initials),  # alphabetically sorted
             state="readonly"
         )
         if valid_initials:
-            staff_initials_combo.current(0)  # default to first staff
-        staff_initials_combo.pack()
+            staff_initials_combo.current(0)
+        staff_initials_combo.pack(pady=2)
 
-        tk.Label(popup, text="Date (YYYY-MM-DD):").pack()
-        date_entry = tk.Entry(popup)
-        date_entry.pack()
+        # Multi-line text for dates
+        label = tk.Label(
+            popup,
+            text=(
+                "Note:\n"
+                "• Date Format: (YYYY-MM-DD):\n"
+                "• Single Date: 2025-03-10\n"
+                "• Multiple (comma/newline): 2025-03-10, 2025-03-12\n"
+                "• Range (dash): 2025-03-10 - 2025-03-13"
+            ),
+            anchor="w",
+            justify="left"
+        )
+        label.pack(fill="x", padx=5, pady=5)
+
+        dates_text = tk.Text(popup, width=30, height=4)
+        dates_text.pack(pady=2)
 
         tk.Label(popup, text="Reason:").pack()
         reason_entry = tk.Entry(popup)
         reason_entry.insert(0, "PTO")
-        reason_entry.pack()
+        reason_entry.pack(pady=2)
 
         def add_avail_action():
             initials = staff_initials_combo.get().strip()
-            date_str = date_entry.get().strip()
+            raw_dates = dates_text.get("1.0", tk.END).strip()
             reason = reason_entry.get().strip()
 
-            if not initials or not date_str:
-                messagebox.showerror("Validation Error", "Staff initials and date are required.")
+            if not initials:
+                messagebox.showerror("Validation Error", "Please select a Staff Initials.")
                 return
 
-            # 3) Add the record via availability_manager
-            self.availability_manager.add_availability(initials, date_str, reason)
+            if not raw_dates:
+                messagebox.showerror("Validation Error", "Please enter at least one date.")
+                return
+
+            # 1) Split lines; handle multiple lines/commas
+            lines = []
+            for line in raw_dates.split("\n"):
+                line = line.strip()
+                if line:
+                    lines.extend([x.strip() for x in line.split(",") if x.strip()])
+
+            # 2) We'll accumulate final date strings in all_dates
+            all_dates = []
+            for entry in lines:
+                # Normalize fancy dashes
+                entry = entry.replace("–", "-").replace("—", "-")
+
+                # Check for space-hyphen-space to parse as range
+                if " - " in entry:
+                    parts = [p.strip() for p in entry.split(" - ")]
+                    if len(parts) == 2:
+                        start_str, end_str = parts
+                        try:
+                            start_dt = datetime.strptime(start_str, "%Y-%m-%d").date()
+                            end_dt = datetime.strptime(end_str, "%Y-%m-%d").date()
+                            if end_dt < start_dt:
+                                raise ValueError("End date before start date in range.")
+                            cursor = start_dt
+                            while cursor <= end_dt:
+                                all_dates.append(cursor.strftime("%Y-%m-%d"))
+                                cursor += timedelta(days=1)
+                        except ValueError as ve:
+                            messagebox.showerror(
+                                "Invalid Range",
+                                f"Could not parse date range '{entry}': {ve}"
+                            )
+                    else:
+                        messagebox.showerror(
+                            "Invalid Range",
+                            f"Date range format should be 'YYYY-MM-DD - YYYY-MM-DD' not '{entry}'."
+                        )
+                else:
+                    # No " - " substring => treat as a single date (or multiple single dates)
+                    try:
+                        dt = datetime.strptime(entry, "%Y-%m-%d").date()
+                        all_dates.append(dt.strftime("%Y-%m-%d"))
+                    except ValueError:
+                        messagebox.showerror(
+                            "Invalid Date",
+                            f"Could not parse date '{entry}'. Must be YYYY-MM-DD."
+                        )
+
+            if not all_dates:
+                return  # user typed invalid stuff or canceled
+
+            # 3) Add them all
+            count_added = 0
+            for date_str in all_dates:
+                self.availability_manager.add_availability(initials, date_str, reason)
+                count_added += 1
+
             self.populate_listbox()
+            messagebox.showinfo("Availability Added",
+                                f"Added {count_added} availability record(s).")
             popup.destroy()
 
-        ttk.Button(popup, text="Add", command=add_avail_action).pack(pady=5)
+        ttk.Button(popup, text="Add Availability", command=add_avail_action).pack(pady=5)
 
     def add_holiday_popup(self):
         popup = tk.Toplevel(self.parent_frame)
@@ -110,15 +186,12 @@ class AvailabilityTab:
 
             # Build a record with is_holiday = True
             record = {
-                "initials": "ALL",  # or "HOLIDAY" to indicate no staff needed
+                "initials": "ALL",  # or "HOLIDAY"
                 "date": date_str,
                 "reason": reason,
                 "is_holiday": True
             }
-            # store it
             self.availability_manager.add_record(record)
-
-            # Refresh list
             self.populate_listbox()
             popup.destroy()
 

@@ -1,11 +1,10 @@
-# scheduler/scheduler_gui.py
-
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import json
 import os
 from datetime import datetime
 from io import StringIO
+
 
 SCHEDULER_ORDER_FILE = "data/scheduler_order.json"
 EBUS_FRIDAYS_FILE = "data/ebus_fridays.json"
@@ -130,8 +129,20 @@ class DualReorderDialog(tk.Toplevel):
 class ManualAssignmentDialog(tk.Toplevel):
     """
     A dialog for manually assigning staff to shifts in a day/shift grid.
+    This version also pre-populates from existing preassignments.
     """
-    def __init__(self, parent, title, day_list, shift_list, staff_list, callback, *args, **kwargs):
+    def __init__(
+        self,
+        parent,
+        title,
+        day_list,
+        shift_list,
+        staff_list,
+        callback,
+        existing_preassigned=None,  # <--- new param to store old picks
+        *args,
+        **kwargs
+    ):
         super().__init__(parent, *args, **kwargs)
         self.parent = parent
         self.title(title)
@@ -140,6 +151,10 @@ class ManualAssignmentDialog(tk.Toplevel):
         self.day_list = day_list
         self.shift_list = shift_list
         self.staff_list = staff_list
+
+        # Keep track of existing picks
+        self.existing_preassigned = existing_preassigned or {}
+
         self.cell_widgets = {}
 
         main_frame = ttk.Frame(self)
@@ -172,6 +187,9 @@ class ManualAssignmentDialog(tk.Toplevel):
                 cb.grid(row=row_index, column=d_idx+1, padx=5, pady=2, sticky="ew")
                 self.cell_widgets[(d_str, shift_name)] = cb
 
+        # Pre-populate combos with existing picks
+        self._populate_existing_assignments()
+
         bottom_frame = ttk.Frame(self)
         bottom_frame.pack(fill="x", pady=5)
         ok_btn = ttk.Button(bottom_frame, text="OK", command=self._on_ok)
@@ -182,6 +200,20 @@ class ManualAssignmentDialog(tk.Toplevel):
         total_cols = len(self.day_list) + 1
         for col in range(total_cols):
             main_frame.grid_columnconfigure(col, weight=1)
+
+    def _populate_existing_assignments(self):
+        """
+        Fill each combobox with the staff initials from existing_preassigned.
+        """
+        for (d_str, shift_name), staff_init in self.existing_preassigned.items():
+            if (d_str, shift_name) in self.cell_widgets:
+                combo = self.cell_widgets[(d_str, shift_name)]
+                # If staff_init not in combo's values, add it
+                if staff_init not in combo['values'] and staff_init != "None":
+                    current_vals = list(combo['values'])
+                    current_vals.append(staff_init)
+                    combo.config(values=current_vals)
+                combo.set(staff_init)
 
     def _on_ok(self):
         preassigned = {}
@@ -267,16 +299,17 @@ class EbusFridayDialog(tk.Toplevel):
 
 
 class SchedulerTab:
-    def __init__(self, parent_frame, ortools_scheduler, staff_manager):
+    def __init__(self, parent_frame, ortools_scheduler, staff_manager, review_manager=None):
         self.parent_frame = parent_frame
         self.ortools_scheduler = ortools_scheduler
         self.staff_manager = staff_manager
+        self.review_manager = review_manager
 
         self.last_generated_schedule = None
         self.role_order = ["Cytologist", "Admin", "Prep Staff", "Unscheduled"]
+        # This dictionary stores all manual picks => {(day_str, shift_name): "staff_initials"}
         self._preassigned = {}
 
-        # We'll keep references for SHIFT-based and STAFF-based Treeviews
         self.bench_tree = None
         self.role_tree = None
 
@@ -298,17 +331,18 @@ class SchedulerTab:
         # 1) Input Frame
         self._create_input_frame()
 
-        # 2) One row of buttons for reorder/manual/ebus
+        # 2) Another row of buttons for reorder/manual/ebus
         self.button_frame = ttk.Frame(self.parent_frame)
         self.button_frame.pack(fill="x", padx=5, pady=5)
 
-        self._create_reorder_button(self.button_frame)     # <= CHANGED: accept `parent`
+        self._create_reorder_button(self.button_frame)
         self._create_manual_assign_button(self.button_frame)
         self._create_ebus_button(self.button_frame)
 
         # 3) Another row for SHIFT→Clipboard and STAFF→Clipboard
         self.export_frame = ttk.Frame(self.parent_frame)
         self.export_frame.pack(fill="x", padx=5, pady=5)
+
         shift_clip_btn = ttk.Button(self.export_frame, text="SHIFT → Clipboard", command=self._copy_bench_clipboard)
         staff_clip_btn = ttk.Button(self.export_frame, text="STAFF → Clipboard", command=self._copy_role_clipboard)
         shift_clip_btn.pack(side="left", padx=5)
@@ -317,100 +351,33 @@ class SchedulerTab:
         # Merge staff from manager
         self._load_staff_order_from_manager()
 
-    # =========== Reorder Staff & Shifts =============
-    def _create_reorder_button(self, parent):
-        reorder_btn = ttk.Button(parent, text="Reorder Staff & Shifts", command=self._open_reorder_dialog)
-        reorder_btn.pack(side="left", padx=5)
+    def _create_input_frame(self):
+        self.input_frame = ttk.Frame(self.parent_frame)
+        self.input_frame.pack(fill="x", padx=5, pady=5)
 
-    def _open_reorder_dialog(self):
-        self._load_staff_order_from_manager()
+        tk.Label(self.input_frame, text="Start Date (YYYY-MM-DD):").grid(row=0, column=0, padx=5, pady=5, sticky="e")
+        self.start_entry = tk.Entry(self.input_frame, width=12)
+        self.start_entry.insert(0, "2025-01-06")
+        self.start_entry.grid(row=0, column=1, padx=5, pady=5)
 
-        def reorder_callback(new_staff_list, new_shift_list):
-            self.staff_order = new_staff_list
-            self.shift_order = new_shift_list
-            self._save_orders_to_file()
-            messagebox.showinfo("Order Updated", "Staff & shift order updated successfully!")
-            self._refresh_schedule_display()
+        tk.Label(self.input_frame, text="End Date (YYYY-MM-DD):").grid(row=0, column=2, padx=5, pady=5, sticky="e")
+        self.end_entry = tk.Entry(self.input_frame, width=12)
+        self.end_entry.insert(0, "2025-01-10")
+        self.end_entry.grid(row=0, column=3, padx=5, pady=5)
 
-        DualReorderDialog(
-            parent=self.parent_frame,
-            title="Reorder Staff & Shifts",
-            staff_items=self.staff_order,
-            shift_items=self.shift_order,
-            callback=reorder_callback
+        # "Generate Schedule" on the left
+        gen_btn = ttk.Button(
+            self.input_frame,
+            text="Generate Schedule",
+            command=self.generate_schedule
         )
+        gen_btn.grid(row=0, column=4, padx=10, pady=5, sticky="w")
 
-    def _load_staff_order_from_manager(self):
-        all_staff_objs = self.staff_manager.list_staff()
-        all_inits = [s_obj.initials for s_obj in all_staff_objs]
-        existing_in_self_order = [init for init in self.staff_order if init in all_inits]
-        new_inits = sorted([init for init in all_inits if init not in existing_in_self_order])
-        self.staff_order = existing_in_self_order + new_inits
+        # "Send to Schedule Review →" on the right
+        review_btn = ttk.Button(self.input_frame, text="Send to Schedule Review →", command=self._on_send_to_review)
+        review_btn.grid(row=0, column=5, padx=10, pady=5, sticky="e")
 
-    def _load_orders_from_file(self):
-        default_staff_order = [
-            "LB", "KEK", "CAM", "CML", "TL", "NM", "CMM", "GN", "DS", "JZ", "HH", "CS", "AS", "XM", "MB", "EM", "CL",
-            "KL", "LH", "TG", "TS"
-        ]
-        default_shift_order = [
-            "Cyto Nons 1", "Cyto Nons 2", "Cyto FNA", "Cyto EUS", "Cyto FLOAT", "Cyto 2ND (1)", "Cyto 2ND (2)",
-            "Cyto IMG", "Cyto APERIO", "Cyto MCY", "Cyto UTD", "Cyto UTD IMG",
-            "Prep AM Nons", "Prep GYN", "Prep EBUS", "Prep FNA", "Prep NONS 1", "Prep NONS 2",
-            "Prep Clerical"
-        ]
-        if not os.path.exists(SCHEDULER_ORDER_FILE):
-            return (default_staff_order, default_shift_order)
-
-        try:
-            with open(SCHEDULER_ORDER_FILE, "r") as f:
-                data = json.load(f)
-            staff_order = data.get("staff_order", default_staff_order)
-            shift_order = data.get("shift_order", default_shift_order)
-            return (staff_order, shift_order)
-        except:
-            return (default_staff_order, default_shift_order)
-
-    def _save_orders_to_file(self):
-        data = {"staff_order": self.staff_order, "shift_order": self.shift_order}
-        os.makedirs(os.path.dirname(SCHEDULER_ORDER_FILE), exist_ok=True)
-        with open(SCHEDULER_ORDER_FILE, "w") as f:
-            json.dump(data, f, indent=4)
-
-    # =========== EBUS Fridays =============
-    def _create_ebus_button(self, parent):
-        ebus_btn = ttk.Button(parent, text="Manage EBUS Fridays", command=self._open_ebus_dialog)
-        ebus_btn.pack(side="right", padx=5)
-
-    def _open_ebus_dialog(self):
-        def save_ebus_list(new_list):
-            self.ebus_fridays = new_list
-            self._save_ebus_fridays()
-            messagebox.showinfo("EBUS Fridays Updated", "List of EBUS Fridays was updated and saved.")
-
-        EbusFridayDialog(
-            parent=self.parent_frame,
-            ebus_list=self.ebus_fridays,
-            callback_save=save_ebus_list
-        )
-
-    def _load_ebus_fridays(self):
-        if not os.path.exists(EBUS_FRIDAYS_FILE):
-            return []
-        try:
-            with open(EBUS_FRIDAYS_FILE, "r") as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                return data
-            return []
-        except:
-            return []
-
-    def _save_ebus_fridays(self):
-        os.makedirs(os.path.dirname(EBUS_FRIDAYS_FILE), exist_ok=True)
-        with open(EBUS_FRIDAYS_FILE, "w") as f:
-            json.dump(self.ebus_fridays, f, indent=4)
-
-    # =========== Manual Assignments =============
+    # Manual Assignments
     def _create_manual_assign_button(self, parent):
         assign_btn = ttk.Button(parent, text="Manual Assignments", command=self._open_manual_dialog)
         assign_btn.pack(side="right", padx=5)
@@ -453,27 +420,51 @@ class SchedulerTab:
             day_list=day_list,
             shift_list=final_shifts,
             staff_list=staff_inits,
+            existing_preassigned=self._preassigned,
             callback=on_ok
         )
 
-    # =========== Input Frame & Generate =============
-    def _create_input_frame(self):
-        self.input_frame = ttk.Frame(self.parent_frame)
-        self.input_frame.pack(fill="x", padx=5, pady=5)
+    # EBUS Fridays
+    def _create_ebus_button(self, parent):
+        ebus_btn = ttk.Button(parent, text="Manage EBUS Fridays", command=self._open_ebus_dialog)
+        ebus_btn.pack(side="right", padx=5)
 
-        tk.Label(self.input_frame, text="Start Date (YYYY-MM-DD):").grid(row=0, column=0, padx=5, pady=5, sticky="e")
-        self.start_entry = tk.Entry(self.input_frame, width=12)
-        self.start_entry.insert(0, "2024-01-01")
-        self.start_entry.grid(row=0, column=1, padx=5, pady=5)
+    def _open_ebus_dialog(self):
+        def save_ebus_list(new_list):
+            self.ebus_fridays = new_list
+            self._save_ebus_fridays()
+            messagebox.showinfo("EBUS Fridays Updated", "List of EBUS Fridays was updated and saved.")
 
-        tk.Label(self.input_frame, text="End Date (YYYY-MM-DD):").grid(row=0, column=2, padx=5, pady=5, sticky="e")
-        self.end_entry = tk.Entry(self.input_frame, width=12)
-        self.end_entry.insert(0, "2024-01-07")
-        self.end_entry.grid(row=0, column=3, padx=5, pady=5)
+        EbusFridayDialog(
+            parent=self.parent_frame,
+            ebus_list=self.ebus_fridays,
+            callback_save=save_ebus_list
+        )
 
-        gen_btn = ttk.Button(self.input_frame, text="Generate Schedule", command=self.generate_schedule)
-        gen_btn.grid(row=0, column=4, padx=10, pady=5)
+    # SHIFT/STAFF Reorder
+    def _create_reorder_button(self, parent):
+        reorder_btn = ttk.Button(parent, text="Reorder Staff & Shifts", command=self._open_reorder_dialog)
+        reorder_btn.pack(side="left", padx=5)
 
+    def _open_reorder_dialog(self):
+        self._load_staff_order_from_manager()
+
+        def reorder_callback(new_staff_list, new_shift_list):
+            self.staff_order = new_staff_list
+            self.shift_order = new_shift_list
+            self._save_orders_to_file()
+            messagebox.showinfo("Order Updated", "Staff & shift order updated successfully!")
+            self._refresh_schedule_display()
+
+        DualReorderDialog(
+            parent=self.parent_frame,
+            title="Reorder Staff & Shifts",
+            staff_items=self.staff_order,
+            shift_items=self.shift_order,
+            callback=reorder_callback
+        )
+
+    # Generate Schedule
     def generate_schedule(self):
         self._load_staff_order_from_manager()
 
@@ -489,7 +480,7 @@ class SchedulerTab:
             messagebox.showerror("Invalid Date", str(ve))
             return
 
-        # Minimal approach for EBUS logic
+        # Check for EBUS Friday
         is_ebus_friday = False
         one_day = (datetime(2020,1,2) - datetime(2020,1,1))
         cursor = dt_s
@@ -504,7 +495,7 @@ class SchedulerTab:
             start_date_str,
             end_date_str,
             preassigned=self._preassigned,
-            is_ebus_friday=is_ebus_friday,  # if your scheduler supports that param
+            is_ebus_friday=is_ebus_friday
         )
         if not schedule_data:
             messagebox.showinfo("No Schedule", "No feasible solution or empty schedule.")
@@ -520,12 +511,43 @@ class SchedulerTab:
         self._build_bench_table(schedule_data)
         self._build_role_table(schedule_data)
 
+        self.last_generated_schedule = schedule_data
+
         messagebox.showinfo("Schedule Generated", "Schedule generated successfully!")
 
-    # =========== SHIFT x DAY =============
+    def _on_send_to_review(self):
+        if not self.last_generated_schedule:
+            messagebox.showwarning("No Schedule", "Please generate a schedule before sending to review.")
+            return
+
+        start_date_str = self.start_entry.get().strip()
+        end_date_str = self.end_entry.get().strip()
+
+        schedule_data = {
+            "start_date": start_date_str,
+            "end_date": end_date_str,
+            "assignments": self.last_generated_schedule,
+            "created_at": datetime.now().isoformat()
+        }
+
+        if self.review_manager:
+            self.review_manager.commit_schedule(schedule_data)
+            messagebox.showinfo(
+                "Schedule Review",
+                "Schedule sent to review successfully!"
+            )
+        else:
+            messagebox.showinfo(
+                "Schedule Review",
+                "No review_manager found—could not store the schedule."
+            )
+
+    def _refresh_schedule_display(self):
+        self.generate_schedule()
+
+    # SHIFT × DAY
     def _build_bench_table(self, schedule_data):
         self.bench_tree = None
-
         day_list = self._date_range(schedule_data)
         shift_map = {}
         for day_str, assigns in schedule_data.items():
@@ -550,7 +572,6 @@ class SchedulerTab:
             tree.heading(d, text=heading_text, anchor="center")
             tree.column(d, width=100, anchor="center")
 
-        # Reorder shifts
         shift_in_schedule = list(shift_map.keys())
         shift_ordered = [sh for sh in self.shift_order if sh in shift_in_schedule]
         leftover_shifts = [sh for sh in shift_in_schedule if sh not in shift_ordered]
@@ -567,20 +588,18 @@ class SchedulerTab:
                 row_vals.append(assigned)
             tree.insert("", "end", values=row_vals)
 
-    # =========== STAFF x DAY =============
+    # STAFF × DAY
     def _build_role_table(self, schedule_data):
         self.role_tree = None
-
         day_list = self._date_range(schedule_data)
         role_map = {}
         staff_role_map = {}
+
         all_staff_objs = self.staff_manager.list_staff()
         for s_obj in all_staff_objs:
-            # If not recognized => "Unscheduled"
             r = s_obj.role if s_obj.role in ["Cytologist", "Admin", "Prep Staff"] else "Unscheduled"
             staff_role_map[s_obj.initials] = r
 
-        # Fill role_map from the final schedule
         for day_str, assigns in schedule_data.items():
             for rec in assigns:
                 shift_name = rec["shift"]
@@ -597,7 +616,6 @@ class SchedulerTab:
                     role_map[schedule_role][staff_init] = {}
                 role_map[schedule_role][staff_init][day_str] = shift_name
 
-        # Ensure every staff is present
         for s_init, r in staff_role_map.items():
             if r not in role_map:
                 role_map[r] = {}
@@ -641,17 +659,12 @@ class SchedulerTab:
 
         tree.tag_configure("role_heading", font=("TkDefaultFont", 12, "bold"))
 
-    # =========== Copy to Clipboard =============
     def _treeview_to_list_of_lists(self, tree):
-        """
-        Convert entire Treeview (including headings) to a list-of-lists
-        """
         if not tree:
             return []
-        columns = tree["columns"]  # e.g. ["Shift", "2024-01-01", ...]
+        columns = tree["columns"]
         heading_row = [tree.heading(c)["text"] for c in columns]
         data = [heading_row]
-
         for child_id in tree.get_children(""):
             row_vals = tree.item(child_id)["values"]
             data.append(row_vals)
@@ -691,6 +704,88 @@ class SchedulerTab:
         self.parent_frame.clipboard_append(output.getvalue())
         messagebox.showinfo("Copied", "STAFF x DAY table copied to clipboard.\nPaste into Excel or similar.")
 
-    # =========== Utility =============
     def _date_range(self, schedule_data):
         return sorted(schedule_data.keys(), key=lambda d: datetime.strptime(d, "%Y-%m-%d"))
+
+    def _load_staff_order_from_manager(self):
+        all_staff_objs = self.staff_manager.list_staff()
+        all_inits = [s_obj.initials for s_obj in all_staff_objs]
+        existing_in_self_order = [init for init in self.staff_order if init in all_inits]
+        new_inits = sorted([init for init in all_inits if init not in existing_in_self_order])
+        self.staff_order = existing_in_self_order + new_inits
+
+    def _load_orders_from_file(self):
+        default_staff_order = [
+            "LB", "KEK", "CAM", "CML", "TL", "NM", "CMM", "GN", "DS", "JZ", "HH", "CS", "AS", "XM", "MB", "EM", "CL",
+            "KL", "LH", "TG", "TS"
+        ]
+        default_shift_order = [
+            "Cyto Nons 1", "Cyto Nons 2", "Cyto FNA", "Cyto EUS", "Cyto FLOAT", "Cyto 2ND (1)", "Cyto 2ND (2)",
+            "Cyto IMG", "Cyto APERIO", "Cyto MCY", "Cyto UTD", "Cyto UTD IMG",
+            "Prep AM Nons", "Prep GYN", "Prep EBUS", "Prep FNA", "Prep NONS 1", "Prep NONS 2",
+            "Prep Clerical"
+        ]
+        if not os.path.exists(SCHEDULER_ORDER_FILE):
+            return (default_staff_order, default_shift_order)
+
+        try:
+            with open(SCHEDULER_ORDER_FILE, "r") as f:
+                data = json.load(f)
+            staff_order = data.get("staff_order", default_staff_order)
+            shift_order = data.get("shift_order", default_shift_order)
+            return (staff_order, shift_order)
+        except:
+            return (default_staff_order, default_shift_order)
+
+    def _save_orders_to_file(self):
+        data = {"staff_order": self.staff_order, "shift_order": self.shift_order}
+        os.makedirs(os.path.dirname(SCHEDULER_ORDER_FILE), exist_ok=True)
+        with open(SCHEDULER_ORDER_FILE, "w") as f:
+            json.dump(data, f, indent=4)
+
+    def _load_ebus_fridays(self):
+        if not os.path.exists(EBUS_FRIDAYS_FILE):
+            return []
+        try:
+            with open(EBUS_FRIDAYS_FILE, "r") as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                return data
+            return []
+        except:
+            return []
+
+    def _save_ebus_fridays(self):
+        os.makedirs(os.path.dirname(EBUS_FRIDAYS_FILE), exist_ok=True)
+        with open(EBUS_FRIDAYS_FILE, "w") as f:
+            json.dump(self.ebus_fridays, f, indent=4)
+
+    # =========== Send to Schedule Review ===========
+    def _on_send_to_review(self):
+        if not self.last_generated_schedule:
+            messagebox.showwarning("No Schedule", "Please generate a schedule before sending to review.")
+            return
+
+        # Build a schedule_data dict
+        start_date_str = self.start_entry.get().strip()
+        end_date_str = self.end_entry.get().strip()
+        schedule_data = {
+            "start_date": start_date_str,
+            "end_date": end_date_str,
+            "assignments": self.last_generated_schedule,
+            "created_at": datetime.now().isoformat()
+        }
+
+        # The real commit call
+        if self.review_manager:
+            self.review_manager.commit_schedule(schedule_data)
+            messagebox.showinfo(
+                "Schedule Review",
+                f"Schedule sent to review successfully! File saved for {start_date_str} → {end_date_str}."
+            )
+        else:
+            messagebox.showerror(
+                "No Review Manager",
+                "No review_manager is attached to the SchedulerTab!"
+            )
+

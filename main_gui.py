@@ -15,16 +15,17 @@ from availability_management.manager import AvailabilityManager
 from scheduler.scheduler import ORToolsScheduler
 from scheduler.scheduler_gui import SchedulerTab
 
-# NEW IMPORTS for constraints
 from constraint_editor.manager import ConstraintsManager
 from constraint_editor.constraint_gui import ConstraintsEditorTab
 
+from schedule_review.manager import ReviewManager
+from schedule_review.review_gui import ScheduleReviewTab
 
 class CytologyScheduler:
     def __init__(self, root):
         self.root = root
         self.root.title("CYTOLOGY SCHEDULER")
-        self.root.geometry("1000x900")
+        self.root.geometry("1100x900")
 
         # Status Bar
         self.status_var = tk.StringVar()
@@ -37,9 +38,9 @@ class CytologyScheduler:
             self.staff_manager = StaffManager(shift_manager=self.shift_manager)
             self.availability_manager = AvailabilityManager()
             self.ortools_scheduler = ORToolsScheduler(self.staff_manager, self.shift_manager, self.availability_manager)
-
-            # Initialize ConstraintsManager after we have staff/shift managers
             self.constraints_manager = ConstraintsManager(self.staff_manager, self.shift_manager)
+            self.review_manager = ReviewManager(schedules_dir="data/schedules")
+
 
         except Exception as e:
             messagebox.showerror("Initialization Error", f"Failed to init managers: {e}")
@@ -83,8 +84,19 @@ class CytologyScheduler:
         self.scheduler_tab = SchedulerTab(
             self.scheduler_tab_frame,
             self.ortools_scheduler,
-            self.staff_manager
+            self.staff_manager,
+            review_manager = self.review_manager
         )
+
+        #Schedule Review Tab
+        self.review_tab_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.review_tab_frame, text="Schedule Review")
+        self.review_tab = ScheduleReviewTab(
+            parent_frame=self.review_tab_frame,
+            review_manager=self.review_manager,
+            staff_manager=self.staff_manager
+        )
+
 
 
         self._create_global_controls()

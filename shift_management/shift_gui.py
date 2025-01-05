@@ -1,61 +1,71 @@
-# shift_management/shift_gui.py
+# shift_management/shift_gui_qt.py
 
-import tkinter as tk
-from tkinter import ttk, messagebox
-from shift_management.manager import ShiftManager
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QListWidget, QListWidgetItem,
+    QGroupBox, QPushButton, QMessageBox, QDialog, QFormLayout, QLineEdit,
+    QCheckBox, QDialogButtonBox, QLabel, QComboBox
+)
+from PySide6.QtCore import Qt
 
-class ShiftTab:
-    def __init__(self, parent_frame, shift_manager: ShiftManager):
-        """
-        GUI for managing shifts.
-        """
-        self.parent_frame = parent_frame
+class ShiftTab(QWidget):
+    """
+    A PyQt version of your old 'ShiftTab'.
+    Replaces Tkinter frames/listboxes/popups with PySide6 widgets.
+    """
+
+    def __init__(self, parent, shift_manager):
+        super().__init__(parent)
         self.shift_manager = shift_manager
-
-        # This list will store which shift (or None) corresponds to each
-        # listbox line, so we can match user selection to real shift objects.
-        self.displayed_shifts = []
+        self.displayed_shifts = []  # parallel list to track headings vs real shifts
 
         self._create_gui()
+        self._refresh_shift_list()
 
     def _create_gui(self):
-        # Frame for Shift List
-        self.shift_list_frame = ttk.LabelFrame(self.parent_frame, text="Shifts")
-        self.shift_list_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        # Main layout
+        main_layout = QVBoxLayout(self)
 
-        self.shift_listbox = tk.Listbox(self.shift_list_frame, height=10)
-        self.shift_listbox.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        # Shifts group box
+        shift_box = QGroupBox("Shifts")
+        main_layout.addWidget(shift_box)
 
-        self.scrollbar = ttk.Scrollbar(self.shift_list_frame, orient="vertical", command=self.shift_listbox.yview)
-        self.scrollbar.pack(side="right", fill="y")
-        self.shift_listbox.config(yscrollcommand=self.scrollbar.set)
+        shift_box_layout = QVBoxLayout(shift_box)
 
-        # Button Frame
-        self.button_frame = ttk.Frame(self.parent_frame)
-        self.button_frame.pack(fill="x", padx=5, pady=5)
+        # A QListWidget for shifts
+        self.shift_list = QListWidget()
+        shift_box_layout.addWidget(self.shift_list)
 
-        self.add_button = ttk.Button(self.button_frame, text="Add Shift", command=self._open_add_shift_popup)
-        self.edit_button = ttk.Button(self.button_frame, text="Edit Shift", command=self._open_edit_shift_popup)
-        self.remove_button = ttk.Button(self.button_frame, text="Remove Shift", command=self._remove_shift)
-        self.refresh_button = ttk.Button(self.button_frame, text="Refresh", command=self._refresh_shift_list)
+        # A horizontal layout for buttons
+        button_layout = QHBoxLayout()
+        main_layout.addLayout(button_layout)
 
-        for btn in (self.add_button, self.edit_button, self.remove_button, self.refresh_button):
-            btn.pack(side="left", padx=5, pady=5)
+        self.add_button = QPushButton("Add Shift")
+        self.add_button.clicked.connect(self._open_add_shift_popup)
+        button_layout.addWidget(self.add_button)
 
-        self._refresh_shift_list()
+        self.edit_button = QPushButton("Edit Shift")
+        self.edit_button.clicked.connect(self._open_edit_shift_popup)
+        button_layout.addWidget(self.edit_button)
+
+        self.remove_button = QPushButton("Remove Shift")
+        self.remove_button.clicked.connect(self._remove_shift)
+        button_layout.addWidget(self.remove_button)
+
+        self.refresh_button = QPushButton("Refresh")
+        self.refresh_button.clicked.connect(self._refresh_shift_list)
+        button_layout.addWidget(self.refresh_button)
+
+        button_layout.addStretch(1)
 
     def _refresh_shift_list(self):
         """
-        Populate the listbox with headings for each role, followed by each shift.
-        We'll store a parallel list `self.displayed_shifts` so we know which lines
-        are real shifts vs. headings or blank lines.
+        Populate the QListWidget with headings for each role, followed by each shift.
+        We store a parallel list 'self.displayed_shifts' to track which items are real shifts.
         """
-        self.shift_listbox.delete(0, tk.END)
-        self.displayed_shifts = []  # Reset the parallel list
+        self.shift_list.clear()
+        self.displayed_shifts = []
 
         all_shifts = self.shift_manager.list_shifts()
-
-        # Group shifts by role
         role_map = {}
         for shift_obj in all_shifts:
             role = shift_obj.role_required if shift_obj.role_required else "Any"
@@ -63,18 +73,19 @@ class ShiftTab:
 
         inserted_roles = set()
 
-        # We'll iterate over all_shifts in the order they appear
-        # so we keep your “no alphabetical” approach.
+        # Keep the order they appear in 'all_shifts'
         for shift_obj in all_shifts:
             role = shift_obj.role_required if shift_obj.role_required else "Any"
             if role not in inserted_roles:
                 # Insert a heading line
-                self.shift_listbox.insert(tk.END, f"--- {role.upper()} ---")
-                self.displayed_shifts.append(None)  # Heading => no shift
-
+                heading_text = f"--- {role.upper()} ---"
+                heading_item = QListWidgetItem(heading_text)
+                heading_item.setFlags(Qt.ItemIsEnabled)  # not selectable
+                self.shift_list.addItem(heading_item)
+                self.displayed_shifts.append(None)
                 inserted_roles.add(role)
 
-                # Now insert each shift in that role
+                # Insert each shift in that role
                 for s in role_map[role]:
                     display_text = (
                         f"{s.name} | "
@@ -83,179 +94,195 @@ class ShiftTab:
                         f"Start={s.start_time} | "
                         f"End={s.end_time}"
                     )
-                    self.shift_listbox.insert(tk.END, display_text)
-                    # This line in the listbox corresponds to the real shift
+                    shift_item = QListWidgetItem(display_text)
+                    self.shift_list.addItem(shift_item)
                     self.displayed_shifts.append(s)
 
-                # Insert a blank line
-                self.shift_listbox.insert(tk.END, "")
+                # Blank line
+                blank_item = QListWidgetItem("")
+                blank_item.setFlags(Qt.ItemIsEnabled)
+                self.shift_list.addItem(blank_item)
                 self.displayed_shifts.append(None)
 
+    def _get_selected_index(self):
+        row = self.shift_list.currentRow()
+        if row < 0 or row >= len(self.displayed_shifts):
+            return None
+        return row
+
     def _open_add_shift_popup(self):
-        popup = tk.Toplevel(self.parent_frame)
-        popup.title("Add Shift")
+        dialog = ShiftEditDialog(
+            parent=self,
+            title="Add Shift",
+            shift_obj=None,
+            on_save=self._on_added_shift
+        )
+        dialog.exec()
 
-        tk.Label(popup, text="Shift Name:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
-        name_entry = tk.Entry(popup)
-        name_entry.grid(row=0, column=1, padx=5, pady=5)
-
-        tk.Label(popup, text="Role Required:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
-        role_values = ["Any", "Prep Staff", "Admin", "Cytologist"]
-        role_combo = ttk.Combobox(popup, values=role_values)
-        role_combo.current(0)
-        role_combo.grid(row=1, column=1, padx=5, pady=5)
-
-        is_flexible_var = tk.BooleanVar()
-        tk.Checkbutton(popup, text="Flexible Shift", variable=is_flexible_var).grid(row=2, column=1, sticky="w")
-
-        can_remain_open_var = tk.BooleanVar()
-        tk.Checkbutton(popup, text="Can Remain Open", variable=can_remain_open_var).grid(row=3, column=1, sticky="w")
-
-        tk.Label(popup, text="Start Time (HH:MM):").grid(row=4, column=0, padx=5, pady=5, sticky="e")
-        start_entry = tk.Entry(popup)
-        start_entry.grid(row=4, column=1, padx=5, pady=5)
-
-        tk.Label(popup, text="End Time (HH:MM):").grid(row=5, column=0, padx=5, pady=5, sticky="e")
-        end_entry = tk.Entry(popup)
-        end_entry.grid(row=5, column=1, padx=5, pady=5)
-
-        tk.Label(popup, text="Days of Week Needed:").grid(row=6, column=0, padx=5, pady=5, sticky="e")
-        days_frame = ttk.Frame(popup)
-        days_frame.grid(row=6, column=1, padx=5, pady=5, sticky="w")
-
-        days_list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-        days_vars = {}
-        for day in days_list:
-            var = tk.BooleanVar()
-            cb = tk.Checkbutton(days_frame, text=day, variable=var)
-            cb.pack(side="left")
-            days_vars[day] = var
-
-        def save_shift():
-            name = name_entry.get().strip()
-            role_req = role_combo.get().strip()
-            is_flexible = is_flexible_var.get()
-            can_remain_open = can_remain_open_var.get()
-            start_time = start_entry.get().strip() or None
-            end_time = end_entry.get().strip() or None
-
-            if not name:
-                messagebox.showerror("Validation Error", "Shift name is required.")
-                return
-
-            selected_days = [day for day, var in days_vars.items() if var.get()]
-
-            self.shift_manager.add_shift(
-                name=name,
-                role_required=role_req,
-                is_flexible=is_flexible,
-                can_remain_open=can_remain_open,
-                start_time=start_time,
-                end_time=end_time,
-                days_of_week=selected_days
-            )
-            self._refresh_shift_list()
-            popup.destroy()
-
-        tk.Button(popup, text="Add", command=save_shift).grid(row=7, column=1, pady=5)
+    def _on_added_shift(self, shift_data):
+        # 'shift_data' is a dict with all fields needed by shift_manager.add_shift
+        self.shift_manager.add_shift(**shift_data)
+        self._refresh_shift_list()
 
     def _open_edit_shift_popup(self):
-        selected_idx = self.shift_listbox.curselection()
-        if not selected_idx:
-            messagebox.showerror("Selection Error", "Please select a shift to edit.")
+        idx = self._get_selected_index()
+        if idx is None:
+            QMessageBox.critical(self, "Selection Error", "Please select a shift to edit.")
             return
 
-        idx = selected_idx[0]
         shift_obj = self.displayed_shifts[idx]
         if shift_obj is None:
-            messagebox.showerror("Selection Error", "Please select an actual shift, not a heading or blank line.")
+            QMessageBox.critical(
+                self, "Selection Error",
+                "Please select an actual shift, not a heading or blank line."
+            )
             return
 
-        # shift_obj is the real shift => open your edit popup
-        popup = tk.Toplevel(self.parent_frame)
-        popup.title("Edit Shift")
+        dialog = ShiftEditDialog(
+            parent=self,
+            title="Edit Shift",
+            shift_obj=shift_obj,
+            on_save=self._on_edited_shift
+        )
+        dialog.exec()
 
-        tk.Label(popup, text="Shift Name:").grid(row=0, column=0, padx=5, pady=5, sticky="e")
-        name_entry = tk.Entry(popup, width=25)
-        name_entry.insert(0, shift_obj.name)
-        name_entry.grid(row=0, column=1, padx=5, pady=5)
-
-        tk.Label(popup, text="Role Required:").grid(row=1, column=0, padx=5, pady=5, sticky="e")
-        role_values = ["Any", "Prep Staff", "Admin", "Cytologist"]
-        role_combo = ttk.Combobox(popup, values=role_values)
-        if shift_obj.role_required in role_values:
-            role_combo.set(shift_obj.role_required)
-        else:
-            role_combo.current(0)
-        role_combo.grid(row=1, column=1, padx=5, pady=5)
-
-        is_flexible_var = tk.BooleanVar(value=shift_obj.is_flexible)
-        tk.Checkbutton(popup, text="Flexible Shift", variable=is_flexible_var).grid(row=2, column=1, sticky="w")
-
-        can_remain_open_var = tk.BooleanVar(value=shift_obj.can_remain_open)
-        tk.Checkbutton(popup, text="Can Remain Open", variable=can_remain_open_var).grid(row=3, column=1, sticky="w")
-
-        tk.Label(popup, text="Start Time (HH:MM):").grid(row=4, column=0, padx=5, pady=5, sticky="e")
-        start_entry = tk.Entry(popup, width=25)
-        start_entry.insert(0, shift_obj.start_time or "")
-        start_entry.grid(row=4, column=1, padx=5, pady=5)
-
-        tk.Label(popup, text="End Time (HH:MM):").grid(row=5, column=0, padx=5, pady=5, sticky="e")
-        end_entry = tk.Entry(popup, width=25)
-        end_entry.insert(0, shift_obj.end_time or "")
-        end_entry.grid(row=5, column=1, padx=5, pady=5)
-
-        # Days of Week
-        tk.Label(popup, text="Days of Week Needed:").grid(row=6, column=0, padx=5, pady=5, sticky="e")
-        days_frame = ttk.Frame(popup)
-        days_frame.grid(row=6, column=1, padx=5, pady=5, sticky="w")
-
-        days_list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-        days_vars = {}
-        for day in days_list:
-            var = tk.BooleanVar(value=(day in getattr(shift_obj, 'days_of_week', [])))
-            cb = tk.Checkbutton(days_frame, text=day, variable=var)
-            cb.pack(side="left")
-            days_vars[day] = var
-
-        def save_edits():
-            old_name = shift_obj.name
-            new_name = name_entry.get().strip()
-            new_role = role_combo.get().strip()
-            new_is_flexible = is_flexible_var.get()
-            new_can_remain_open = can_remain_open_var.get()
-            new_start = start_entry.get().strip() or None
-            new_end = end_entry.get().strip() or None
-
-            selected_days = [day for day, var in days_vars.items() if var.get()]
-
-            self.shift_manager.edit_shift(
-                old_name,
-                name=new_name,
-                role_required=new_role,
-                is_flexible=new_is_flexible,
-                can_remain_open=new_can_remain_open,
-                start_time=new_start,
-                end_time=new_end,
-                days_of_week=selected_days
-            )
-            self._refresh_shift_list()
-            popup.destroy()
-
-        tk.Button(popup, text="Save", command=save_edits).grid(row=7, column=1, pady=10)
+    def _on_edited_shift(self, shift_update):
+        # shift_update has old_name plus the updates
+        old_name = shift_update.pop("old_name")
+        self.shift_manager.edit_shift(old_name, **shift_update)
+        self._refresh_shift_list()
 
     def _remove_shift(self):
-        selected_idx = self.shift_listbox.curselection()
-        if not selected_idx:
-            messagebox.showerror("Selection Error", "Please select a shift to remove.")
+        idx = self._get_selected_index()
+        if idx is None:
+            QMessageBox.critical(self, "Selection Error", "Please select a shift to remove.")
             return
 
-        idx = selected_idx[0]
         shift_obj = self.displayed_shifts[idx]
         if shift_obj is None:
-            messagebox.showerror("Selection Error", "Please select an actual shift, not a heading or blank line.")
+            QMessageBox.critical(
+                self, "Selection Error",
+                "Please select an actual shift, not a heading or blank line."
+            )
             return
 
-        if messagebox.askyesno("Confirm Removal", f"Remove shift '{shift_obj.name}'?"):
+        resp = QMessageBox.question(
+            self,
+            "Confirm Removal",
+            f"Remove shift '{shift_obj.name}'?"
+        )
+        if resp == QMessageBox.Yes:
             self.shift_manager.remove_shift(shift_obj.name)
             self._refresh_shift_list()
+
+# ----------------------------------------------------------------------
+# Dialog for adding or editing a Shift
+# ----------------------------------------------------------------------
+class ShiftEditDialog(QDialog):
+    def __init__(self, parent, title, shift_obj, on_save):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self.shift_obj = shift_obj
+        self.on_save = on_save
+
+        self._build_ui()
+
+    def _build_ui(self):
+        layout = QVBoxLayout(self)
+
+        form = QFormLayout()
+        layout.addLayout(form)
+
+        # Shift Name
+        self.name_edit = QLineEdit()
+        form.addRow("Shift Name:", self.name_edit)
+
+        # Role Required
+        self.role_combo = QComboBox()
+        self.role_combo.addItems(["Any", "Prep Staff", "Admin", "Cytologist"])
+        form.addRow("Role Required:", self.role_combo)
+
+        self.is_flexible_check = QCheckBox("Flexible Shift")
+        layout.addWidget(self.is_flexible_check)
+
+        self.can_remain_open_check = QCheckBox("Can Remain Open")
+        layout.addWidget(self.can_remain_open_check)
+
+        # Start/End time
+        self.start_edit = QLineEdit()
+        form.addRow("Start Time (HH:MM):", self.start_edit)
+
+        self.end_edit = QLineEdit()
+        form.addRow("End Time (HH:MM):", self.end_edit)
+
+        # Days of Week
+        days_label = QLabel("Days of Week Needed:")
+        layout.addWidget(days_label)
+
+        self.days_list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        self.days_vars = {}
+        days_layout = QHBoxLayout()
+        layout.addLayout(days_layout)
+
+        for day in self.days_list:
+            var = QCheckBox(day)
+            days_layout.addWidget(var)
+            self.days_vars[day] = var
+
+        # Button box
+        btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        btn_box.accepted.connect(self._on_ok)
+        btn_box.rejected.connect(self.reject)
+        layout.addWidget(btn_box)
+
+        # If editing, populate fields
+        if self.shift_obj:
+            self.name_edit.setText(self.shift_obj.name)
+            if self.shift_obj.role_required in ["Any", "Prep Staff", "Admin", "Cytologist"]:
+                self.role_combo.setCurrentText(self.shift_obj.role_required)
+            self.is_flexible_check.setChecked(self.shift_obj.is_flexible)
+            self.can_remain_open_check.setChecked(self.shift_obj.can_remain_open)
+            if self.shift_obj.start_time:
+                self.start_edit.setText(self.shift_obj.start_time)
+            if self.shift_obj.end_time:
+                self.end_edit.setText(self.shift_obj.end_time)
+
+            # days_of_week
+            for d in getattr(self.shift_obj, 'days_of_week', []):
+                if d in self.days_vars:
+                    self.days_vars[d].setChecked(True)
+
+    def _on_ok(self):
+        shift_name = self.name_edit.text().strip()
+        role_req = self.role_combo.currentText().strip()
+        is_flexible = self.is_flexible_check.isChecked()
+        can_open = self.can_remain_open_check.isChecked()
+        start_t = self.start_edit.text().strip() or None
+        end_t = self.end_edit.text().strip() or None
+
+        selected_days = []
+        for d in self.days_list:
+            if self.days_vars[d].isChecked():
+                selected_days.append(d)
+
+        if not shift_name:
+            QMessageBox.critical(self, "Validation Error", "Shift name is required.")
+            return
+
+        # Build a dict for on_save
+        shift_data = {
+            "name": shift_name,
+            "role_required": role_req,
+            "is_flexible": is_flexible,
+            "can_remain_open": can_open,
+            "start_time": start_t,
+            "end_time": end_t,
+            "days_of_week": selected_days
+        }
+
+        if self.shift_obj:
+            # We'll pass the old_name so we can do shift_manager.edit_shift(old_name, **updates)
+            shift_data["old_name"] = self.shift_obj.name
+
+        self.on_save(shift_data)
+        self.accept()

@@ -1,217 +1,296 @@
-# availability_management/availability_gui.py
+# availability_management/availability_gui_qt.py
 
-import tkinter as tk
-from tkinter import ttk, messagebox
-import datetime
-from datetime import datetime, timedelta
-import json
+import calendar
+from datetime import date
 
-class AvailabilityTab:
-    def __init__(self, parent_frame, availability_manager, staff_manager):
-        """
-        Basic GUI for availability tracking.
-        """
-        self.parent_frame = parent_frame
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
+    QPushButton, QComboBox, QMessageBox, QTableWidget,
+    QTableWidgetItem, QHeaderView, QDialog, QFormLayout,
+    QLineEdit, QDialogButtonBox, QCalendarWidget
+)
+from PySide6.QtCore import Qt, QDate
+from PySide6.QtGui import QColor
+
+# If you have a multi-date approach for normal PTO:
+from .multi_date_calendar import MultiDateAvailabilityDialog
+
+
+class AddHolidayDialog(QDialog):
+    """
+    A QDialog that displays a QCalendarWidget to pick exactly one date for a Holiday.
+    """
+    def __init__(self, parent, availability_manager):
+        super().__init__(parent)
+        self.setWindowTitle("Select Holiday Date")
+        self.availability_manager = availability_manager
+        self._build_ui()
+
+    def _build_ui(self):
+        layout = QVBoxLayout(self)
+
+        # A QCalendarWidget for single-date selection
+        self.calendar = QCalendarWidget()
+        self.calendar.setGridVisible(True)
+        layout.addWidget(self.calendar)
+
+        # By default, highlight “today” or do nothing special
+
+        # A small form layout for the reason
+        form_layout = QFormLayout()
+        layout.addLayout(form_layout)
+
+        self.reason_edit = QLineEdit("Holiday")
+        form_layout.addRow("Reason (optional):", self.reason_edit)
+
+        # OK/Cancel
+        btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        btn_box.accepted.connect(self._on_ok)
+        btn_box.rejected.connect(self.reject)
+        layout.addWidget(btn_box)
+
+        # Optionally resize bigger:
+        self.resize(400, 400)
+
+    def _on_ok(self):
+        # Convert QDate to Python date
+        qdate = self.calendar.selectedDate()
+        year = qdate.year()
+        month = qdate.month()
+        day = qdate.day()
+        pydate = date(year, month, day)
+
+        # Build the record
+        record = {
+            "initials": "ALL",       # or "HOLIDAY" if you prefer
+            "date": pydate.isoformat(),  # "YYYY-MM-DD" string
+            "reason": self.reason_edit.text().strip(),
+            "is_holiday": True
+        }
+        self.availability_manager.add_record(record)
+        self.accept()
+
+
+class AvailabilityTab(QWidget):
+    """
+    A PySide6 version of your old Tk-based AvailabilityTab,
+    now with a month-based table, plus remove & holiday.
+    """
+    def __init__(self, parent, availability_manager, staff_manager):
+        super().__init__(parent)
         self.availability_manager = availability_manager
         self.staff_manager = staff_manager
 
-        self.create_ui()
-        self.populate_listbox()
+        # We'll store staff initials & day strings in instance vars
+        # so the remove function can easily map (row, col).
+        self._current_staff_inits = []
+        self._current_day_strs = []
 
-    def create_ui(self):
-        self.avail_frame = ttk.LabelFrame(self.parent_frame, text="Availability Records")
-        self.avail_frame.pack(fill="both", expand=True, padx=10, pady=5)
+        self._build_ui()
+        self._refresh_table()  # fill table by default
 
-        self.avail_listbox = tk.Listbox(self.avail_frame, height=10, width=80)
-        self.avail_listbox.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+    def _build_ui(self):
+        layout = QVBoxLayout(self)
 
-        self.scrollbar = ttk.Scrollbar(self.avail_frame)
-        self.scrollbar.pack(side="right", fill="y")
-        self.avail_listbox.config(yscrollcommand=self.scrollbar.set)
-        self.scrollbar.config(command=self.avail_listbox.yview)
+        # -- Top controls (month/year combos, plus "Show" button) --
+        top_controls = QHBoxLayout()
+        layout.addLayout(top_controls)
 
-        self.button_frame = ttk.Frame(self.parent_frame)
-        self.button_frame.pack(fill="x", padx=10, pady=5)
+        self.month_combo = QComboBox()
+        month_names = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ]
+        for i, mname in enumerate(month_names, start=1):
+            self.month_combo.addItem(mname, i)
+        self.month_combo.setCurrentIndex(0)  # e.g. January
+        top_controls.addWidget(self.month_combo)
 
-        self.add_button = ttk.Button(self.button_frame, text="Add Availability", command=self.add_availability_popup)
-        self.holiday_button = ttk.Button(self.button_frame, text="Add Holiday", command=self.add_holiday_popup)
-        self.remove_button = ttk.Button(self.button_frame, text="Remove Selected", command=self.remove_selected_record)
-        self.add_button.pack(side="left", padx=5)
-        self.holiday_button.pack(side="left", padx=5)
-        self.remove_button.pack(side="left", padx=5)
+        self.year_combo = QComboBox()
+        for yr in range(2024, 2031):
+            self.year_combo.addItem(str(yr), yr)
+        self.year_combo.setCurrentText("2025")  # default
+        top_controls.addWidget(self.year_combo)
 
-    def populate_listbox(self):
-        self.avail_listbox.delete(0, tk.END)
-        for rec in self.availability_manager.list_availability():
-            line = f"{rec['initials']} | {rec['date']} | Reason: {rec['reason']}"
-            self.avail_listbox.insert(tk.END, line)
+        self.month_combo.currentIndexChanged.connect(self._refresh_table)
+        self.year_combo.currentIndexChanged.connect(self._refresh_table)
 
-    def add_availability_popup(self):
-        popup = tk.Toplevel(self.parent_frame)
-        popup.title("Add Availability (Multiple Dates / Range)")
+        top_controls.addStretch(1)
 
-        # 1) Get the list of staff from staff_manager
-        staff_list = self.staff_manager.list_staff()
-        valid_initials = [s.initials for s in staff_list]
+        # Table: staff vs days
+        self.table = QTableWidget()
+        # let user select single cells
+        self.table.setSelectionMode(QTableWidget.SingleSelection)
+        self.table.setSelectionBehavior(QTableWidget.SelectItems)
+        layout.addWidget(self.table)
 
-        tk.Label(popup, text="Staff Initials:").pack()
-        staff_initials_combo = ttk.Combobox(
-            popup,
-            values=sorted(valid_initials),  # alphabetically sorted
-            state="readonly"
-        )
-        if valid_initials:
-            staff_initials_combo.current(0)
-        staff_initials_combo.pack(pady=2)
+        # -- Buttons row: Add Avail (Calendar), Holiday, Remove, etc. --
+        btn_row = QHBoxLayout()
+        layout.addLayout(btn_row)
 
-        # Multi-line text for dates
-        label = tk.Label(
-            popup,
-            text=(
-                "Note:\n"
-                "• Date Format: (YYYY-MM-DD):\n"
-                "• Single Date: 2025-03-10\n"
-                "• Multiple (comma/newline): 2025-03-10, 2025-03-12\n"
-                "• Range (dash): 2025-03-10 - 2025-03-13"
-            ),
-            anchor="w",
-            justify="left"
-        )
-        label.pack(fill="x", padx=5, pady=5)
+        # 1) Add Availability (Calendar) => normal PTO or partial FTE
+        multi_btn = QPushButton("Add Availability")
+        multi_btn.clicked.connect(self._on_add_availability_calendar)
+        btn_row.addWidget(multi_btn)
 
-        dates_text = tk.Text(popup, width=30, height=4)
-        dates_text.pack(pady=2)
+        # 2) Add Holiday => uses single-date QCalendar
+        holiday_btn = QPushButton("Add Holiday")
+        holiday_btn.clicked.connect(self._on_add_holiday)
+        btn_row.addWidget(holiday_btn)
 
-        tk.Label(popup, text="Reason:").pack()
-        reason_entry = tk.Entry(popup)
-        reason_entry.insert(0, "PTO")
-        reason_entry.pack(pady=2)
+        # 3) Remove Selected
+        remove_btn = QPushButton("Remove Selected")
+        remove_btn.clicked.connect(self._on_remove_selected)
+        btn_row.addWidget(remove_btn)
 
-        def add_avail_action():
-            initials = staff_initials_combo.get().strip()
-            raw_dates = dates_text.get("1.0", tk.END).strip()
-            reason = reason_entry.get().strip()
+        btn_row.addStretch(1)
 
-            if not initials:
-                messagebox.showerror("Validation Error", "Please select a Staff Initials.")
-                return
-
-            if not raw_dates:
-                messagebox.showerror("Validation Error", "Please enter at least one date.")
-                return
-
-            # 1) Split lines; handle multiple lines/commas
-            lines = []
-            for line in raw_dates.split("\n"):
-                line = line.strip()
-                if line:
-                    lines.extend([x.strip() for x in line.split(",") if x.strip()])
-
-            # 2) We'll accumulate final date strings in all_dates
-            all_dates = []
-            for entry in lines:
-                # Normalize fancy dashes
-                entry = entry.replace("–", "-").replace("—", "-")
-
-                # Check for space-hyphen-space to parse as range
-                if " - " in entry:
-                    parts = [p.strip() for p in entry.split(" - ")]
-                    if len(parts) == 2:
-                        start_str, end_str = parts
-                        try:
-                            start_dt = datetime.strptime(start_str, "%Y-%m-%d").date()
-                            end_dt = datetime.strptime(end_str, "%Y-%m-%d").date()
-                            if end_dt < start_dt:
-                                raise ValueError("End date before start date in range.")
-                            cursor = start_dt
-                            while cursor <= end_dt:
-                                all_dates.append(cursor.strftime("%Y-%m-%d"))
-                                cursor += timedelta(days=1)
-                        except ValueError as ve:
-                            messagebox.showerror(
-                                "Invalid Range",
-                                f"Could not parse date range '{entry}': {ve}"
-                            )
-                    else:
-                        messagebox.showerror(
-                            "Invalid Range",
-                            f"Date range format should be 'YYYY-MM-DD - YYYY-MM-DD' not '{entry}'."
-                        )
-                else:
-                    # No " - " substring => treat as a single date (or multiple single dates)
-                    try:
-                        dt = datetime.strptime(entry, "%Y-%m-%d").date()
-                        all_dates.append(dt.strftime("%Y-%m-%d"))
-                    except ValueError:
-                        messagebox.showerror(
-                            "Invalid Date",
-                            f"Could not parse date '{entry}'. Must be YYYY-MM-DD."
-                        )
-
-            if not all_dates:
-                return  # user typed invalid stuff or canceled
-
-            # 3) Add them all
-            count_added = 0
-            for date_str in all_dates:
-                self.availability_manager.add_availability(initials, date_str, reason)
-                count_added += 1
-
-            self.populate_listbox()
-            messagebox.showinfo("Availability Added",
-                                f"Added {count_added} availability record(s).")
-            popup.destroy()
-
-        ttk.Button(popup, text="Add Availability", command=add_avail_action).pack(pady=5)
-
-    def add_holiday_popup(self):
-        popup = tk.Toplevel(self.parent_frame)
-        popup.title("Add Holiday")
-
-        tk.Label(popup, text="Holiday Date (YYYY-MM-DD):").pack()
-        date_entry = tk.Entry(popup)
-        date_entry.pack()
-
-        tk.Label(popup, text="Reason (optional):").pack()
-        reason_entry = tk.Entry(popup)
-        reason_entry.insert(0, "Holiday")
-        reason_entry.pack()
-
-        def add_holiday_action():
-            date_str = date_entry.get().strip()
-            reason = reason_entry.get().strip()
-            if not date_str:
-                messagebox.showerror("Validation Error", "Holiday date is required.")
-                return
-
-            # Build a record with is_holiday = True
-            record = {
-                "initials": "ALL",  # or "HOLIDAY"
-                "date": date_str,
-                "reason": reason,
-                "is_holiday": True
-            }
-            self.availability_manager.add_record(record)
-            self.populate_listbox()
-            popup.destroy()
-
-        ttk.Button(popup, text="Add Holiday", command=add_holiday_action).pack(pady=5)
-
-    def remove_selected_record(self):
-        selection = self.avail_listbox.curselection()
-        if not selection:
-            messagebox.showerror("No Selection", "Please select an availability record to remove.")
+    def _refresh_table(self):
+        # 1) Determine chosen month/year
+        month_idx = self.month_combo.currentIndex()
+        month = self.month_combo.itemData(month_idx)
+        year_idx = self.year_combo.currentIndex()
+        year = self.year_combo.itemData(year_idx)
+        if not (month and year):
+            QMessageBox.warning(self, "Invalid Selection", "No valid month/year selected.")
             return
-        selected_line = self.avail_listbox.get(selection[0])
-        parts = selected_line.split(" | ")
-        if len(parts) < 2:
-            return
-        initials = parts[0].strip()
-        date_str = parts[1].strip()
 
-        if messagebox.askyesno("Confirm Removal", f"Remove availability for {initials}, {date_str}?"):
-            success = self.availability_manager.remove_availability(initials, date_str)
-            if success:
-                self.populate_listbox()
+        # 2) Number of days in that month
+        num_days = calendar.monthrange(year, month)[1]
+
+        # 3) Gather staff
+        staff_objs = sorted(self.staff_manager.list_staff(), key=lambda s: s.initials)
+        row_count = len(staff_objs)
+        col_count = num_days
+
+        self.table.clear()
+        self.table.setRowCount(row_count)
+        self.table.setColumnCount(col_count)
+
+        # Build day labels + store day_str for each column
+        day_labels = []
+        self._current_day_strs = []
+        from datetime import date as dt_date
+        for c in range(num_days):
+            day_num = c + 1
+            day_labels.append(str(day_num))  # for header
+            day_date = dt_date(year, month, day_num)
+            self._current_day_strs.append(day_date.strftime("%Y-%m-%d"))
+
+        self.table.setHorizontalHeaderLabels(day_labels)
+
+        staff_inits = [s.initials for s in staff_objs]
+        self._current_staff_inits = staff_inits
+        self.table.setVerticalHeaderLabels(staff_inits)
+
+        # Fix columns to ~31 px wide
+        #self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
+        #self.table.horizontalHeader().setDefaultSectionSize(31)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        # 4) Build availability map + a set of holiday days
+        avails = self.availability_manager.list_availability()
+        availability_map = {}
+        holiday_days = set()  # store just the date_str for any holiday
+
+        for rec in avails:
+            d_str = rec["date"]
+            reason = rec.get("reason", "")
+            # If it's a normal staff record, store by (init, date_str)
+            init = rec["initials"]
+            if not rec.get("is_holiday", False):
+                # Normal availability => staff-based
+                availability_map[(init, d_str)] = reason
             else:
-                messagebox.showerror("Removal Error", "Could not remove availability.")
+                # It's a holiday => color all staff on that date
+                # so store day_str in holiday_days
+                holiday_days.add(d_str)
+
+        # 5) Fill each cell with color
+        for r, stf in enumerate(staff_objs):
+            init = stf.initials
+            for c in range(num_days):
+                day_str = self._current_day_strs[c]
+                # If day_str is in holiday_days => teal
+                if day_str in holiday_days:
+                    reason = "Holiday"
+                    color = QColor("teal")
+                else:
+                    # normal reason from availability_map
+                    reason = availability_map.get((init, day_str), "")
+                    if reason == "PTO":
+                        color = QColor("green")
+                    elif reason in ("0.5 FTE", "0.8 FTE"):
+                        color = QColor("blue")
+                    elif reason == "SSL":
+                        color = QColor("red")
+                    elif reason:
+                        color = QColor("yellow")
+                    else:
+                        color = None
+
+                item = QTableWidgetItem("")
+                if color is not None:
+                    item.setBackground(color)
+                if reason:
+                    item.setToolTip(reason)
+
+                self.table.setItem(r, c, item)
+
+        self.table.resizeRowsToContents()
+
+    def _on_add_availability_calendar(self):
+        """Show the multi-date picking dialog (for normal PTO or partial FTE)."""
+        dialog = MultiDateAvailabilityDialog(
+            parent=self,
+            availability_manager=self.availability_manager,
+            staff_manager=self.staff_manager
+        )
+        if dialog.exec() == QDialog.Accepted:
+            self._refresh_table()
+
+    def _on_add_holiday(self):
+        """Open the AddHolidayDialog with a single-date QCalendarWidget."""
+        dialog = AddHolidayDialog(self, self.availability_manager)
+        if dialog.exec() == QDialog.Accepted:
+            self._refresh_table()
+
+    def _on_remove_selected(self):
+        """
+        Remove the availability record from the currently selected cell.
+        """
+        items = self.table.selectedIndexes()
+        if not items:
+            QMessageBox.warning(self, "No Selection", "Please select a cell to remove.")
+            return
+
+        idx = items[0]
+        row = idx.row()
+        col = idx.column()
+
+        if row < 0 or row >= len(self._current_staff_inits):
+            return
+        staff_init = self._current_staff_inits[row]
+
+        if col < 0 or col >= len(self._current_day_strs):
+            return
+        date_str = self._current_day_strs[col]
+
+        resp = QMessageBox.question(
+            self,
+            "Confirm Removal",
+            f"Remove availability for {staff_init}, {date_str}?"
+        )
+        if resp != QMessageBox.Yes:
+            return
+
+        success = self.availability_manager.remove_availability(staff_init, date_str)
+        if success:
+            self._refresh_table()
+        else:
+            QMessageBox.critical(
+                self,
+                "Removal Error",
+                f"Could not remove availability for {staff_init}, {date_str}."
+            )

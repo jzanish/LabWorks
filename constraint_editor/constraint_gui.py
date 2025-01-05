@@ -1,75 +1,85 @@
-# constraint_editor/constraint_gui.py
+# constraint_editor/constraint_gui_qt.py
 
-import tkinter as tk
-from tkinter import ttk, messagebox
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem,
+    QGroupBox, QPushButton, QMessageBox, QDialog, QLabel, QLineEdit,
+    QDialogButtonBox, QComboBox
+)
+from PySide6.QtCore import Qt
 
-class ConstraintsEditorTab:
-    def __init__(self, parent_frame, constraints_manager, staff_manager, shift_manager):
-        """
-        :param parent_frame: the parent container (Notebook frame)
-        :param constraints_manager: an instance of your ConstraintsManager
-        :param staff_manager: to fetch staff list
-        :param shift_manager: to fetch shift list
-        """
-        self.parent_frame = parent_frame
+
+class ConstraintsEditorTab(QWidget):
+    """
+    A PySide6 version of your old ConstraintsEditorTab.
+    Replaces the Tk treeview with a QTreeWidget, plus add/edit/delete buttons.
+    """
+
+    def __init__(self, parent, constraints_manager, staff_manager, shift_manager):
+        super().__init__(parent)
         self.constraints_manager = constraints_manager
         self.staff_manager = staff_manager
         self.shift_manager = shift_manager
 
-        self.tree = None
-
+        self.tree = None  # we'll hold a QTreeWidget reference
         self._build_ui()
         self._populate_constraint_list()
 
     def _build_ui(self):
-        # Frame for the treeview
-        tree_frame = ttk.Frame(self.parent_frame)
-        tree_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        layout = QVBoxLayout(self)
 
-        columns = ("type", "staff", "shift", "params")
-        self.tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
-        self.tree.pack(fill="both", expand=True)
+        # Tree group
+        self.tree_box = QGroupBox("Constraints")
+        layout.addWidget(self.tree_box)
 
-        self.tree.heading("type", text="Constraint Type")
-        self.tree.heading("staff", text="Staff")
-        self.tree.heading("shift", text="Shift")
-        self.tree.heading("params", text="Parameters")
+        tree_layout = QVBoxLayout(self.tree_box)
+        self.tree = QTreeWidget()
+        self.tree.setColumnCount(4)
+        self.tree.setHeaderLabels(["Constraint Type", "Staff", "Shift", "Parameters"])
+        tree_layout.addWidget(self.tree)
 
-        # Buttons frame
-        btn_frame = ttk.Frame(self.parent_frame)
-        btn_frame.pack(fill="x", padx=5, pady=5)
+        # Buttons row
+        btn_layout = QHBoxLayout()
+        layout.addLayout(btn_layout)
 
-        add_btn = ttk.Button(btn_frame, text="Add", command=self._on_add)
-        add_btn.pack(side="left", padx=5)
+        add_btn = QPushButton("Add")
+        add_btn.clicked.connect(self._on_add)
+        btn_layout.addWidget(add_btn)
 
-        edit_btn = ttk.Button(btn_frame, text="Edit", command=self._on_edit)
-        edit_btn.pack(side="left", padx=5)
+        edit_btn = QPushButton("Edit")
+        edit_btn.clicked.connect(self._on_edit)
+        btn_layout.addWidget(edit_btn)
 
-        del_btn = ttk.Button(btn_frame, text="Delete", command=self._on_delete)
-        del_btn.pack(side="left", padx=5)
+        del_btn = QPushButton("Delete")
+        del_btn.clicked.connect(self._on_delete)
+        btn_layout.addWidget(del_btn)
+
+        btn_layout.addStretch(1)
 
     def _populate_constraint_list(self):
-        # Clear old rows
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-
+        """
+        Clears the QTreeWidget and re-lists constraints from constraints_manager.
+        """
+        self.tree.clear()
         constraints = self.constraints_manager.list_constraints()
         for idx, c in enumerate(constraints):
             ctype = c.get("type", "")
             staff = c.get("staff", "")
             shift = c.get("shift", "")
-            # Remaining keys in 'params'
-            param_text = str({k: v for k, v in c.items() if k not in ["type","staff","shift"]})
-            self.tree.insert("", "end", values=(ctype, staff, shift, param_text))
+            # everything else => parameters
+            leftover = {k: v for k, v in c.items() if k not in ["type", "staff", "shift"]}
+            param_text = str(leftover)
+            item = QTreeWidgetItem([ctype, staff, shift, param_text])
+            self.tree.addTopLevelItem(item)
 
     def _on_add(self):
-        # Open a custom Toplevel (form) for adding a new constraint
-        AddOrEditConstraintForm(
-            parent=self.parent_frame,
+        dialog = AddOrEditConstraintForm(
+            parent=self,
             staff_manager=self.staff_manager,
             shift_manager=self.shift_manager,
-            on_save=self._handle_new_constraint
+            on_save=self._handle_new_constraint,
+            initial_data=None
         )
+        dialog.exec()
 
     def _handle_new_constraint(self, constraint_dict):
         """
@@ -78,166 +88,176 @@ class ConstraintsEditorTab:
         self.constraints_manager.add_constraint(constraint_dict)
         self.constraints_manager.save_data()
         self._populate_constraint_list()
-        messagebox.showinfo("Constraint Added", "New constraint has been added successfully.")
+        QMessageBox.information(self, "Constraint Added", "New constraint has been added successfully.")
 
     def _on_edit(self):
-        sel = self.tree.selection()
-        if not sel:
-            messagebox.showerror("No Selection", "Please select a constraint to edit.")
+        item = self.tree.currentItem()
+        if not item:
+            QMessageBox.critical(self, "No Selection", "Please select a constraint to edit.")
             return
-        item_id = sel[0]
-        index_in_list = self.tree.index(item_id)
+        index_in_list = self.tree.indexOfTopLevelItem(item)
+        if index_in_list < 0:
+            QMessageBox.critical(self, "No Selection", "Could not locate constraint index.")
+            return
+
         existing_constraint = self.constraints_manager.list_constraints()[index_in_list]
 
-        # open the form again, but prepopulate with existing data
-        AddOrEditConstraintForm(
-            parent=self.parent_frame,
+        dialog = AddOrEditConstraintForm(
+            parent=self,
             staff_manager=self.staff_manager,
             shift_manager=self.shift_manager,
             initial_data=existing_constraint,
             on_save=lambda updated: self._handle_edit_constraint(index_in_list, updated)
         )
+        dialog.exec()
 
     def _handle_edit_constraint(self, index, updated_constraint):
         self.constraints_manager.update_constraint(index, updated_constraint)
         self.constraints_manager.save_data()
         self._populate_constraint_list()
-        messagebox.showinfo("Constraint Updated", "Constraint updated successfully.")
+        QMessageBox.information(self, "Constraint Updated", "Constraint updated successfully.")
 
     def _on_delete(self):
-        sel = self.tree.selection()
-        if not sel:
-            messagebox.showerror("No Selection", "Please select a constraint to remove.")
+        item = self.tree.currentItem()
+        if not item:
+            QMessageBox.critical(self, "No Selection", "Please select a constraint to remove.")
             return
-        item_id = sel[0]
-        index_in_list = self.tree.index(item_id)
-        self.constraints_manager.remove_constraint(index_in_list)
-        self.constraints_manager.save_data()
-        self._populate_constraint_list()
-        messagebox.showinfo("Constraint Deleted", "Constraint was removed.")
+        index_in_list = self.tree.indexOfTopLevelItem(item)
+        if index_in_list < 0:
+            QMessageBox.critical(self, "No Selection", "Could not locate constraint index.")
+            return
+
+        resp = QMessageBox.question(self, "Confirm Removal", "Remove this constraint?")
+        if resp == QMessageBox.Yes:
+            self.constraints_manager.remove_constraint(index_in_list)
+            self.constraints_manager.save_data()
+            self._populate_constraint_list()
+            QMessageBox.information(self, "Constraint Deleted", "Constraint was removed.")
 
 
-class AddOrEditConstraintForm(tk.Toplevel):
+class AddOrEditConstraintForm(QDialog):
     """
-    A Toplevel form to let user pick: Constraint Type, Staff, Shift, and parameters.
+    A QDialog form to let user pick: Constraint Type, Staff, Shift, and parameters.
     If initial_data is provided, we populate the fields for editing.
     on_save is called with the resulting constraint dict when the user hits OK.
     """
+
     def __init__(self, parent, staff_manager, shift_manager, on_save, initial_data=None):
         super().__init__(parent)
-        self.title("Add/Edit Constraint")
+        self.setWindowTitle("Add/Edit Constraint")
 
         self.staff_manager = staff_manager
         self.shift_manager = shift_manager
         self.on_save = on_save
         self.initial_data = initial_data or {}
 
-        # We could define a small set of known constraint types
         self.constraint_types = [
             "LimitWeeklyShift",
             "AvoidBackToBack",
             "KLPreference",
             "NoBackToBackEUSFNA",
-            # ... etc ...
         ]
 
-        self._create_widgets()
+        self._build_ui()
         self._populate_initial_values()
-        self.grab_set()  # Keep focus on this window
 
-    def _create_widgets(self):
-        pad = 5
+    def _build_ui(self):
+        from PySide6.QtWidgets import QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QDialogButtonBox, \
+            QFormLayout
+
+        layout = QVBoxLayout(self)
+
+        form_layout = QFormLayout()
+        layout.addLayout(form_layout)
 
         # Constraint Type
-        ttk.Label(self, text="Constraint Type:").grid(row=0, column=0, padx=pad, pady=pad, sticky="e")
-        self.type_var = tk.StringVar()
-        self.type_combo = ttk.Combobox(self, textvariable=self.type_var, values=self.constraint_types, state="readonly")
-        self.type_combo.grid(row=0, column=1, padx=pad, pady=pad, sticky="w")
+        self.type_combo = QComboBox()
+        self.type_combo.addItems(self.constraint_types)
+        form_layout.addRow("Constraint Type:", self.type_combo)
 
         # Staff
-        ttk.Label(self, text="Staff:").grid(row=1, column=0, padx=pad, pady=pad, sticky="e")
-        self.staff_var = tk.StringVar()
-        # get staff initials from staff_manager
-        staff_list = [s.initials for s in self.staff_manager.list_staff()]
-        self.staff_combo = ttk.Combobox(self, textvariable=self.staff_var, values=staff_list, state="readonly")
-        self.staff_combo.grid(row=1, column=1, padx=pad, pady=pad, sticky="w")
+        staff_inits = [s.initials for s in self.staff_manager.list_staff()]
+        self.staff_combo = QComboBox()
+        self.staff_combo.addItem("")  # allow blank
+        for stf in staff_inits:
+            self.staff_combo.addItem(stf)
+        form_layout.addRow("Staff:", self.staff_combo)
 
         # Shift
-        ttk.Label(self, text="Shift:").grid(row=2, column=0, padx=pad, pady=pad, sticky="e")
-        self.shift_var = tk.StringVar()
-        # get shift names from shift_manager
         shift_objs = self.shift_manager.list_shifts()
         shift_list = [sh.name for sh in shift_objs]
-        self.shift_combo = ttk.Combobox(self, textvariable=self.shift_var, values=shift_list, state="readonly")
-        self.shift_combo.grid(row=2, column=1, padx=pad, pady=pad, sticky="w")
+        self.shift_combo = QComboBox()
+        self.shift_combo.addItem("")  # allow blank
+        for sh_name in shift_list:
+            self.shift_combo.addItem(sh_name)
+        form_layout.addRow("Shift:", self.shift_combo)
 
-        # Param1 Label & Entry (for demonstration, e.g. “exact_count”)
-        ttk.Label(self, text="Param 1:").grid(row=3, column=0, padx=pad, pady=pad, sticky="e")
-        self.param1_var = tk.StringVar()
-        self.param1_entry = ttk.Entry(self, textvariable=self.param1_var)
-        self.param1_entry.grid(row=3, column=1, padx=pad, pady=pad, sticky="w")
-
-        # Additional parameter(s) can be added similarly if needed
+        # Param1 (some generic param for demonstration)
+        self.param1_edit = QLineEdit()
+        form_layout.addRow("Param 1:", self.param1_edit)
 
         # Buttons
-        btn_frame = ttk.Frame(self)
-        btn_frame.grid(row=5, column=0, columnspan=2, pady=10)
+        btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        btn_box.accepted.connect(self._on_ok)
+        btn_box.rejected.connect(self.reject)
+        layout.addWidget(btn_box)
 
-        ok_btn = ttk.Button(btn_frame, text="OK", command=self._on_ok)
-        ok_btn.pack(side="left", padx=10)
-
-        cancel_btn = ttk.Button(btn_frame, text="Cancel", command=self.destroy)
-        cancel_btn.pack(side="left", padx=10)
+        self.setLayout(layout)
 
     def _populate_initial_values(self):
-        # If editing, fill combos with existing data
         ctype = self.initial_data.get("type", "")
         staff = self.initial_data.get("staff", "")
         shift = self.initial_data.get("shift", "")
-        param1 = ""
-        # param1 can be read from e.g. self.initial_data.get("exact_count") if type=LimitWeeklyShift
-        # or we do a generic approach
-        leftover = {k: v for k, v in self.initial_data.items() if k not in ("type","staff","shift")}
-        if leftover:
-            # We'll just pick the first leftover key as param1
-            # Real code might handle multiple or do something more sophisticated
-            first_key = list(leftover.keys())[0]
-            param1 = leftover[first_key]
 
-        self.type_var.set(ctype)
-        self.staff_var.set(staff)
-        self.shift_var.set(shift)
-        self.param1_var.set(str(param1))
+        # We'll parse leftover as param1
+        leftover = {k: v for k, v in self.initial_data.items() if k not in ("type", "staff", "shift")}
+        param1_value = ""
+        if leftover:
+            # pick first leftover key's value
+            first_key = list(leftover.keys())[0]
+            param1_value = leftover[first_key]
+
+        # set combos
+        idx_ctype = self.type_combo.findText(ctype)
+        if idx_ctype >= 0:
+            self.type_combo.setCurrentIndex(idx_ctype)
+
+        idx_staff = self.staff_combo.findText(staff)
+        if idx_staff >= 0:
+            self.staff_combo.setCurrentIndex(idx_staff)
+
+        idx_shift = self.shift_combo.findText(shift)
+        if idx_shift >= 0:
+            self.shift_combo.setCurrentIndex(idx_shift)
+
+        self.param1_edit.setText(str(param1_value))
 
     def _on_ok(self):
-        # Gather data from widgets
-        ctype = self.type_var.get().strip()
-        staff = self.staff_var.get().strip()
-        shift = self.shift_var.get().strip()
-        param1_value = self.param1_var.get().strip()
+        ctype = self.type_combo.currentText().strip()
+        staff = self.staff_combo.currentText().strip()
+        shift = self.shift_combo.currentText().strip()
+        param1_value = self.param1_edit.text().strip()
 
         if not ctype:
-            messagebox.showerror("Missing Type", "Please select a constraint type.")
+            QMessageBox.critical(self, "Missing Type", "Please select a constraint type.")
             return
 
-        # Build a constraint dict
         constraint_dict = {
             "type": ctype,
             "staff": staff,
             "shift": shift
         }
-        # We'll store param1_value as "param1", or if ctype=LimitWeeklyShift => "exact_count"...
-        # For now, let's do something generic
+
+        # Some logic for param1
         if ctype == "LimitWeeklyShift":
-            # param1_value might be an integer for "exact_count"
+            # parse int?
             try:
-                param_int = int(param1_value)
-                constraint_dict["exact_count"] = param_int
-            except:
+                val = int(param1_value)
+                constraint_dict["exact_count"] = val
+            except ValueError:
                 constraint_dict["exact_count"] = param1_value
         else:
-            # just store it in param1 as a string
             constraint_dict["param1"] = param1_value
 
         self.on_save(constraint_dict)
-        self.destroy()
+        self.accept()

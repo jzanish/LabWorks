@@ -280,5 +280,59 @@
         "date": "2025-02-25",
         "reason": "PTO",
         "is_holiday": false
+    },
+    {
+        "initials": "JZ",
+        "date": "2025-01-07",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "JZ",
+        "date": "2025-02-24",
+        "reason": "CAP",
+        "is_holiday": false
+    },
+    {
+        "initials": "JZ",
+        "date": "2025-02-25",
+        "reason": "CAP",
+        "is_holiday": false
+    },
+    {
+        "initials": "JZ",
+        "date": "2025-02-26",
+        "reason": "CAP",
+        "is_holiday": false
+    },
+    {
+        "initials": "JZ",
+        "date": "2025-02-27",
+        "reason": "CAP",
+        "is_holiday": false
+    },
+    {
+        "initials": "JZ",
+        "date": "2025-02-28",
+        "reason": "CAP",
+        "is_holiday": false
+    },
+    {
+        "initials": "ALL",
+        "date": "2025-01-01",
+        "reason": "Holiday",
+        "is_holiday": true
+    },
+    {
+        "initials": "ALL",
+        "date": "2025-01-01",
+        "reason": "Holiday",
+        "is_holiday": true
+    },
+    {
+        "initials": "ALL",
+        "date": "2025-01-01",
+        "reason": "Holiday",
+        "is_holiday": true
     }
 ]

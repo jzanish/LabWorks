@@ -1,131 +1,138 @@
-# main_gui.py
+# main_gui_qt.py
 
-import tkinter as tk
-from tkinter import ttk, messagebox
+import sys
 
-from staff_management.staff_gui import StaffTab
+from PySide6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QTabWidget,
+    QLabel, QStatusBar, QPushButton, QHBoxLayout, QMessageBox
+)
+from PySide6.QtCore import Qt, QSize
+
+# ---- import your managers ----
 from staff_management.manager import StaffManager
-
-from shift_management.shift_gui import ShiftTab
 from shift_management.manager import ShiftManager
-
-from availability_management.availability_gui import AvailabilityTab
 from availability_management.manager import AvailabilityManager
-
 from scheduler.scheduler import ORToolsScheduler
-from scheduler.scheduler_gui import SchedulerTab
-
 from constraint_editor.manager import ConstraintsManager
-from constraint_editor.constraint_gui import ConstraintsEditorTab
-
 from schedule_review.manager import ReviewManager
+
+# ---- import your PyQt-based tabs (the newly converted classes) ----
+from staff_management.staff_gui import StaffTab
+from shift_management.shift_gui import ShiftTab
+from availability_management.availability_gui import AvailabilityTab
+from constraint_editor.constraint_gui import ConstraintsEditorTab
+from scheduler.scheduler_gui import SchedulerTab
 from schedule_review.review_gui import ScheduleReviewTab
 
-class CytologyScheduler:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("CYTOLOGY SCHEDULER")
-        self.root.geometry("1100x900")
 
-        # Status Bar
-        self.status_var = tk.StringVar()
-        self.status_var.set("Welcome!")
-        self.status_bar = ttk.Label(self.root, textvariable=self.status_var, relief=tk.SUNKEN, anchor="w")
-        self.status_bar.pack(side="bottom", fill="x")
+class CytologySchedulerWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("CYTOLOGY SCHEDULER - PyQt Edition")
+        self.resize(1100, 900)
 
+        # Create managers
         try:
             self.shift_manager = ShiftManager()
             self.staff_manager = StaffManager(shift_manager=self.shift_manager)
             self.availability_manager = AvailabilityManager()
-            self.ortools_scheduler = ORToolsScheduler(self.staff_manager, self.shift_manager, self.availability_manager)
+            self.ortools_scheduler = ORToolsScheduler(
+                self.staff_manager,
+                self.shift_manager,
+                self.availability_manager
+            )
             self.constraints_manager = ConstraintsManager(self.staff_manager, self.shift_manager)
             self.review_manager = ReviewManager(schedules_dir="data/schedules")
-
-
         except Exception as e:
-            messagebox.showerror("Initialization Error", f"Failed to init managers: {e}")
+            QMessageBox.critical(self, "Initialization Error", f"Failed to init managers: {e}")
             return
 
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(expand=True, fill="both")
+        # Main widget to hold everything
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+
+        # Layout for the central widget
+        main_layout = QVBoxLayout(central_widget)
+
+        # Create QTabWidget (like a Notebook)
+        self.tab_widget = QTabWidget()
+        main_layout.addWidget(self.tab_widget, stretch=1)
 
         # Staff Tab
-        self.staff_tab_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.staff_tab_frame, text="Staff Management")
-        self.staff_tab = StaffTab(self.staff_tab_frame, self.staff_manager, self.shift_manager)
+        self.staff_tab = StaffTab(self.tab_widget, self.staff_manager, self.shift_manager)
+        self.tab_widget.addTab(self.staff_tab, "Staff Management")
 
         # Shift Tab
-        self.shift_tab_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.shift_tab_frame, text="Shift Management")
-        self.shift_tab = ShiftTab(self.shift_tab_frame, self.shift_manager)
+        self.shift_tab = ShiftTab(self.tab_widget, self.shift_manager)
+        self.tab_widget.addTab(self.shift_tab, "Shift Management")
 
         # Constraints Tab
-        self.constraints_tab_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.constraints_tab_frame, text="Constraints")
         self.constraints_tab = ConstraintsEditorTab(
-            self.constraints_tab_frame,
+            self.tab_widget,
             self.constraints_manager,
             self.staff_manager,
-            self.shift_manager,
+            self.shift_manager
         )
+        self.tab_widget.addTab(self.constraints_tab, "Constraints")
 
         # Availability Tab
-        self.availability_tab_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.availability_tab_frame, text="Availability")
         self.availability_tab = AvailabilityTab(
-            parent_frame=self.availability_tab_frame,
-            availability_manager=self.availability_manager,
-            staff_manager=self.staff_manager
+            self.tab_widget,
+            self.availability_manager,
+            self.staff_manager
         )
+        self.tab_widget.addTab(self.availability_tab, "Availability")
 
         # Scheduler Tab
-        self.scheduler_tab_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.scheduler_tab_frame, text="Scheduler")
         self.scheduler_tab = SchedulerTab(
-            self.scheduler_tab_frame,
+            self.tab_widget,
             self.ortools_scheduler,
             self.staff_manager,
-            review_manager = self.review_manager
+            review_manager=self.review_manager
         )
+        self.tab_widget.addTab(self.scheduler_tab, "Scheduler")
 
-        #Schedule Review Tab
-        self.review_tab_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.review_tab_frame, text="Schedule Review")
+        # Schedule Review Tab
         self.review_tab = ScheduleReviewTab(
-            parent_frame=self.review_tab_frame,
-            review_manager=self.review_manager,
-            staff_manager=self.staff_manager
+            self.tab_widget,
+            self.review_manager,
+            self.staff_manager
         )
+        self.tab_widget.addTab(self.review_tab, "Schedule Review")
 
+        # A horizontal layout for global controls
+        self._create_global_controls(main_layout)
 
+        # Status bar
+        self.status_bar = QStatusBar()
+        self.status_bar.showMessage("Welcome!")
+        self.setStatusBar(self.status_bar)
 
-        self._create_global_controls()
+    def _create_global_controls(self, parent_layout):
+        control_layout = QHBoxLayout()
+        parent_layout.addLayout(control_layout)
 
-    def _create_global_controls(self):
-        control_frame = ttk.Frame(self.root)
-        control_frame.pack(fill="x", padx=10, pady=5)
+        refresh_button = QPushButton("Refresh All Tabs")
+        refresh_button.clicked.connect(self._refresh_all_tabs)
+        control_layout.addWidget(refresh_button)
 
-        refresh_button = ttk.Button(control_frame, text="Refresh All Tabs", command=self._refresh_all_tabs)
-        refresh_button.pack(side="left", padx=5, pady=5)
+        save_button = QPushButton("Save All Data")
+        save_button.clicked.connect(self._save_all_data)
+        control_layout.addWidget(save_button)
 
-        save_button = ttk.Button(control_frame, text="Save All Data", command=self._save_all_data)
-        save_button.pack(side="left", padx=5, pady=5)
-
-        print("DEBUG: Global control buttons created.")
+        # Add some stretch so they stay on the left
+        control_layout.addStretch(1)
 
     def _refresh_all_tabs(self):
         try:
-            self.staff_tab.populate_listbox()
-            self.shift_tab._refresh_shift_list()
-            self.availability_tab.populate_listbox()
-            # If your constraints tab has a refresh method, call it too:
-            self.constraints_tab._populate_constraint_list()
-
-            self.status_var.set("All tabs refreshed!")
+            # If your new PyQt-based tabs have a refresh method, call them here
+            # e.g. self.staff_tab.refresh()
+            # For demonstration, just a debug message:
+            self.status_bar.showMessage("All tabs refreshed!")
             print("DEBUG: All tabs refreshed successfully.")
         except Exception as e:
-            messagebox.showerror("Refresh Error", f"Could not refresh: {e}")
-            self.status_var.set(str(e))
+            QMessageBox.critical(self, "Refresh Error", f"Could not refresh: {e}")
+            self.status_bar.showMessage(str(e))
             print(f"ERROR: Could not refresh tabs - {e}")
 
     def _save_all_data(self):
@@ -133,17 +140,21 @@ class CytologyScheduler:
             self.staff_manager.save_data()
             self.shift_manager.save_data()
             self.availability_manager.save_data()
-            # Also save constraints:
             self.constraints_manager.save_data()
 
-            messagebox.showinfo("Data Saved", "All data saved successfully!")
+            QMessageBox.information(self, "Data Saved", "All data saved successfully!")
             print("DEBUG: All data saved successfully.")
         except Exception as e:
-            messagebox.showerror("Save Error", f"Could not save data: {e}")
+            QMessageBox.critical(self, "Save Error", f"Could not save data: {e}")
             print(f"ERROR: Could not save data - {e}")
 
 
+def main():
+    app = QApplication(sys.argv)
+    window = CytologySchedulerWindow()
+    window.show()
+    sys.exit(app.exec())
+
+
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = CytologyScheduler(root)
-    root.mainloop()
+    main()

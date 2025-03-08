@@ -1,0 +1,690 @@
+{
+    "start_date": "2025-03-03",
+    "end_date": "2025-03-07",
+    "assignments": {
+        "2025-03-03": [
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": "EM",
+                "role": "Prep Staff",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": "NM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Admin",
+                "assigned_to": "Unassigned",
+                "role": "Admin",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": "DS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": "Unassigned",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": "CS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": "CMM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": "KEK",
+                "role": "Cytologist",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": "XM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto APERIO",
+                "assigned_to": "GN",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": "CL",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": "Unassigned",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": "TS",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": "LH",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": "KL",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": "HH",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": "TL",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": "TG",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": "CAM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            }
+        ],
+        "2025-03-04": [
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": "CL",
+                "role": "Prep Staff",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": "GN",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Admin",
+                "assigned_to": "Unassigned",
+                "role": "Admin",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": "TL",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": "Unassigned",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto MCY",
+                "assigned_to": "DS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": "AS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": "CAM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": "KEK",
+                "role": "Cytologist",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": "XM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": "KL",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": "LH",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": "TG",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": "TS",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": "Unassigned",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": "CS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": "Unassigned",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": "EM",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": "CMM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            }
+        ],
+        "2025-03-05": [
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": "EM",
+                "role": "Prep Staff",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": "CS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Admin",
+                "assigned_to": "Unassigned",
+                "role": "Admin",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": "HH",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": "GN",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto MCY",
+                "assigned_to": "CAM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": "TL",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": "AS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": "KEK",
+                "role": "Cytologist",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": "XM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": "CL",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": "KL",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": "TG",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": "TS",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": "Unassigned",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": "DS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": "CMM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": "LH",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": "NM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            }
+        ],
+        "2025-03-06": [
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": "EM",
+                "role": "Prep Staff",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": "CMM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Admin",
+                "assigned_to": "Unassigned",
+                "role": "Admin",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": "CAM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": "Unassigned",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto MCY",
+                "assigned_to": "DS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": "HH",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": "CS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": "KEK",
+                "role": "Cytologist",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": "XM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto APERIO",
+                "assigned_to": "JZ",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": "LH",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": "Unassigned",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": "TS",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": "TG",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": "Unassigned",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": "TL",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": "Unassigned",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": "CL",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": "AS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            }
+        ],
+        "2025-03-07": [
+            {
+                "shift": "Prep AM Nons",
+                "assigned_to": "CL",
+                "role": "Prep Staff",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto EUS",
+                "assigned_to": "TL",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Admin",
+                "assigned_to": "Unassigned",
+                "role": "Admin",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FLOAT",
+                "assigned_to": "CMM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto IMG",
+                "assigned_to": "Unassigned",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto UTD",
+                "assigned_to": "CAM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto UTD IMG",
+                "assigned_to": "HH",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (1)",
+                "assigned_to": "KEK",
+                "role": "Cytologist",
+                "is_flexible": false,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto 2ND (2)",
+                "assigned_to": "XM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto APERIO",
+                "assigned_to": "NM",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep GYN",
+                "assigned_to": "EM",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep EBUS",
+                "assigned_to": "Unassigned",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep NONS 1",
+                "assigned_to": "TG",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep NONS 2",
+                "assigned_to": "LH",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Prep Clerical",
+                "assigned_to": "Unassigned",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto Nons 1",
+                "assigned_to": "AS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            },
+            {
+                "shift": "Cyto Nons 2",
+                "assigned_to": "DS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Prep FNA",
+                "assigned_to": "TS",
+                "role": "Prep Staff",
+                "is_flexible": true,
+                "can_remain_open": true
+            },
+            {
+                "shift": "Cyto FNA",
+                "assigned_to": "CS",
+                "role": "Cytologist",
+                "is_flexible": true,
+                "can_remain_open": false
+            }
+        ]
+    },
+    "created_at": "2025-01-11T23:25:16.544561",
+    "version": "20250111_232516"
+}

@@ -136,7 +136,7 @@
         "name": "Cyto 2ND (2)",
         "role_required": "Cytologist",
         "is_flexible": true,
-        "can_remain_open": false,
+        "can_remain_open": true,
         "start_time": "11:00",
         "end_time": "19:30",
         "days_of_week": [

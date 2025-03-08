@@ -1,8 +1,7 @@
-# availability_management/availability_gui_qt.py
+# availability_management/availability_gui.py
 
 import calendar
-from datetime import date
-
+from datetime import date, datetime
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
     QPushButton, QComboBox, QMessageBox, QTableWidget,
@@ -16,10 +15,30 @@ from PySide6.QtGui import QColor
 from .multi_date_calendar import MultiDateAvailabilityDialog
 
 
+# 1) Here's the little helper function:
+def short_day_label(year, month, day_num):
+    """
+    Return a string like:  "13 (M)"  or  "13\nM"
+    for the given year/month/day_num.
+    """
+    d_obj = date(year, month, day_num)
+
+    # Minimal abbreviations of weekdays: M, T, W, Th, F, Sa, Su
+    # Python's weekday(): Monday=0..Sunday=6
+    short_names = ["M", "T", "W", "Th", "F", "Sa", "Su"]
+    w = d_obj.weekday()  # 0..6
+
+    # (A) Either multiline:
+    return f"{short_names[w]}\n{day_num}"
+    # (B) Or side by side:
+    # return f"{day_num} ({short_names[w]})"
+
+
 class AddHolidayDialog(QDialog):
     """
     A QDialog that displays a QCalendarWidget to pick exactly one date for a Holiday.
     """
+
     def __init__(self, parent, availability_manager):
         super().__init__(parent)
         self.setWindowTitle("Select Holiday Date")
@@ -62,7 +81,7 @@ class AddHolidayDialog(QDialog):
 
         # Build the record
         record = {
-            "initials": "ALL",       # or "HOLIDAY" if you prefer
+            "initials": "ALL",  # or "HOLIDAY" if you prefer
             "date": pydate.isoformat(),  # "YYYY-MM-DD" string
             "reason": self.reason_edit.text().strip(),
             "is_holiday": True
@@ -76,13 +95,12 @@ class AvailabilityTab(QWidget):
     A PySide6 version of your old Tk-based AvailabilityTab,
     now with a month-based table, plus remove & holiday.
     """
+
     def __init__(self, parent, availability_manager, staff_manager):
         super().__init__(parent)
         self.availability_manager = availability_manager
         self.staff_manager = staff_manager
 
-        # We'll store staff initials & day strings in instance vars
-        # so the remove function can easily map (row, col).
         self._current_staff_inits = []
         self._current_day_strs = []
 
@@ -92,7 +110,7 @@ class AvailabilityTab(QWidget):
     def _build_ui(self):
         layout = QVBoxLayout(self)
 
-        # -- Top controls (month/year combos, plus "Show" button) --
+        # -- Top controls (month/year combos, etc.) --
         top_controls = QHBoxLayout()
         layout.addLayout(top_controls)
 
@@ -112,41 +130,38 @@ class AvailabilityTab(QWidget):
         self.year_combo.setCurrentText("2025")  # default
         top_controls.addWidget(self.year_combo)
 
+        # Connect signals so we auto-refresh
         self.month_combo.currentIndexChanged.connect(self._refresh_table)
         self.year_combo.currentIndexChanged.connect(self._refresh_table)
-
         top_controls.addStretch(1)
 
-        # Table: staff vs days
+        # The QTableWidget that displays staff vs days
         self.table = QTableWidget()
-        # let user select single cells
         self.table.setSelectionMode(QTableWidget.SingleSelection)
         self.table.setSelectionBehavior(QTableWidget.SelectItems)
         layout.addWidget(self.table)
 
-        # -- Buttons row: Add Avail (Calendar), Holiday, Remove, etc. --
+        # Buttons row
         btn_row = QHBoxLayout()
         layout.addLayout(btn_row)
 
-        # 1) Add Availability (Calendar) => normal PTO or partial FTE
         multi_btn = QPushButton("Add Availability")
         multi_btn.clicked.connect(self._on_add_availability_calendar)
         btn_row.addWidget(multi_btn)
 
-        # 2) Add Holiday => uses single-date QCalendar
         holiday_btn = QPushButton("Add Holiday")
         holiday_btn.clicked.connect(self._on_add_holiday)
         btn_row.addWidget(holiday_btn)
 
-        # 3) Remove Selected
         remove_btn = QPushButton("Remove Selected")
         remove_btn.clicked.connect(self._on_remove_selected)
         btn_row.addWidget(remove_btn)
 
         btn_row.addStretch(1)
 
+        self.setLayout(layout)
+
     def _refresh_table(self):
-        # 1) Determine chosen month/year
         month_idx = self.month_combo.currentIndex()
         month = self.month_combo.itemData(month_idx)
         year_idx = self.year_combo.currentIndex()
@@ -155,10 +170,9 @@ class AvailabilityTab(QWidget):
             QMessageBox.warning(self, "Invalid Selection", "No valid month/year selected.")
             return
 
-        # 2) Number of days in that month
         num_days = calendar.monthrange(year, month)[1]
 
-        # 3) Gather staff
+        # Gather staff
         staff_objs = sorted(self.staff_manager.list_staff(), key=lambda s: s.initials)
         row_count = len(staff_objs)
         col_count = num_days
@@ -167,58 +181,55 @@ class AvailabilityTab(QWidget):
         self.table.setRowCount(row_count)
         self.table.setColumnCount(col_count)
 
-        # Build day labels + store day_str for each column
+        # Build day labels but with short_day_label() instead of just str(day_num)
         day_labels = []
         self._current_day_strs = []
-        from datetime import date as dt_date
+
         for c in range(num_days):
             day_num = c + 1
-            day_labels.append(str(day_num))  # for header
-            day_date = dt_date(year, month, day_num)
-            self._current_day_strs.append(day_date.strftime("%Y-%m-%d"))
+            # Use the helper to produce e.g. "13 (M)" or "13\nM"
+            label_text = short_day_label(year, month, day_num)
+            day_labels.append(label_text)
+
+            from datetime import date as dt_date
+            actual_date = dt_date(year, month, day_num)
+            self._current_day_strs.append(actual_date.strftime("%Y-%m-%d"))
 
         self.table.setHorizontalHeaderLabels(day_labels)
 
+        # staff_inits
         staff_inits = [s.initials for s in staff_objs]
         self._current_staff_inits = staff_inits
         self.table.setVerticalHeaderLabels(staff_inits)
 
-        # Fix columns to ~31 px wide
-        #self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed)
-        #self.table.horizontalHeader().setDefaultSectionSize(31)
+        # Make columns stretch
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-        # 4) Build availability map + a set of holiday days
+        # Build availability map
         avails = self.availability_manager.list_availability()
         availability_map = {}
-        holiday_days = set()  # store just the date_str for any holiday
+        holiday_days = set()
 
         for rec in avails:
             d_str = rec["date"]
             reason = rec.get("reason", "")
-            # If it's a normal staff record, store by (init, date_str)
             init = rec["initials"]
             if not rec.get("is_holiday", False):
-                # Normal availability => staff-based
                 availability_map[(init, d_str)] = reason
             else:
-                # It's a holiday => color all staff on that date
-                # so store day_str in holiday_days
                 holiday_days.add(d_str)
 
-        # 5) Fill each cell with color
+        # Fill each cell
         for r, stf in enumerate(staff_objs):
             init = stf.initials
             for c in range(num_days):
-                day_str = self._current_day_strs[c]
-                # If day_str is in holiday_days => teal
-                if day_str in holiday_days:
-                    reason = "Holiday"
+                d_str = self._current_day_strs[c]
+                if d_str in holiday_days:
                     color = QColor("teal")
+                    reason = "Holiday"
                 else:
-                    # normal reason from availability_map
-                    reason = availability_map.get((init, day_str), "")
+                    reason = availability_map.get((init, d_str), "")
                     if reason == "PTO":
                         color = QColor("green")
                     elif reason in ("0.5 FTE", "0.8 FTE"):
@@ -231,7 +242,7 @@ class AvailabilityTab(QWidget):
                         color = None
 
                 item = QTableWidgetItem("")
-                if color is not None:
+                if color:
                     item.setBackground(color)
                 if reason:
                     item.setToolTip(reason)
@@ -241,7 +252,6 @@ class AvailabilityTab(QWidget):
         self.table.resizeRowsToContents()
 
     def _on_add_availability_calendar(self):
-        """Show the multi-date picking dialog (for normal PTO or partial FTE)."""
         dialog = MultiDateAvailabilityDialog(
             parent=self,
             availability_manager=self.availability_manager,
@@ -251,15 +261,11 @@ class AvailabilityTab(QWidget):
             self._refresh_table()
 
     def _on_add_holiday(self):
-        """Open the AddHolidayDialog with a single-date QCalendarWidget."""
         dialog = AddHolidayDialog(self, self.availability_manager)
         if dialog.exec() == QDialog.Accepted:
             self._refresh_table()
 
     def _on_remove_selected(self):
-        """
-        Remove the availability record from the currently selected cell.
-        """
         items = self.table.selectedIndexes()
         if not items:
             QMessageBox.warning(self, "No Selection", "Please select a cell to remove.")
@@ -268,11 +274,9 @@ class AvailabilityTab(QWidget):
         idx = items[0]
         row = idx.row()
         col = idx.column()
-
         if row < 0 or row >= len(self._current_staff_inits):
             return
         staff_init = self._current_staff_inits[row]
-
         if col < 0 or col >= len(self._current_day_strs):
             return
         date_str = self._current_day_strs[col]
@@ -289,8 +293,5 @@ class AvailabilityTab(QWidget):
         if success:
             self._refresh_table()
         else:
-            QMessageBox.critical(
-                self,
-                "Removal Error",
-                f"Could not remove availability for {staff_init}, {date_str}."
-            )
+            QMessageBox.critical(self, "Removal Error",
+                                 f"Could not remove availability for {staff_init}, {date_str}.")

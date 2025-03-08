@@ -1,36 +1,33 @@
 # main_gui_qt.py
 
 import sys
-
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QTabWidget,
     QLabel, QStatusBar, QPushButton, QHBoxLayout, QMessageBox
 )
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt
 
 # ---- import your managers ----
 from staff_management.manager import StaffManager
 from shift_management.manager import ShiftManager
 from availability_management.manager import AvailabilityManager
 from scheduler.scheduler import ORToolsScheduler
-from constraint_editor.manager import ConstraintsManager
 from schedule_review.manager import ReviewManager
 
 # ---- import your PyQt-based tabs (the newly converted classes) ----
 from staff_management.staff_gui import StaffTab
 from shift_management.shift_gui import ShiftTab
 from availability_management.availability_gui import AvailabilityTab
-from constraint_editor.constraint_gui import ConstraintsEditorTab
 from scheduler.scheduler_gui import SchedulerTab
-from schedule_review.review_gui import ScheduleReviewTab
+from schedule_review.schedule_review_gui import ScheduleReviewTab
 
 
 class CytologySchedulerWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("CYTOLOGY SCHEDULER - PyQt Edition")
-        self.resize(1100, 900)
-
+        self.resize(1700, 900)
+  
         # Create managers
         try:
             self.shift_manager = ShiftManager()
@@ -41,7 +38,6 @@ class CytologySchedulerWindow(QMainWindow):
                 self.shift_manager,
                 self.availability_manager
             )
-            self.constraints_manager = ConstraintsManager(self.staff_manager, self.shift_manager)
             self.review_manager = ReviewManager(schedules_dir="data/schedules")
         except Exception as e:
             QMessageBox.critical(self, "Initialization Error", f"Failed to init managers: {e}")
@@ -66,15 +62,6 @@ class CytologySchedulerWindow(QMainWindow):
         self.shift_tab = ShiftTab(self.tab_widget, self.shift_manager)
         self.tab_widget.addTab(self.shift_tab, "Shift Management")
 
-        # Constraints Tab
-        self.constraints_tab = ConstraintsEditorTab(
-            self.tab_widget,
-            self.constraints_manager,
-            self.staff_manager,
-            self.shift_manager
-        )
-        self.tab_widget.addTab(self.constraints_tab, "Constraints")
-
         # Availability Tab
         self.availability_tab = AvailabilityTab(
             self.tab_widget,
@@ -88,7 +75,9 @@ class CytologySchedulerWindow(QMainWindow):
             self.tab_widget,
             self.ortools_scheduler,
             self.staff_manager,
-            review_manager=self.review_manager
+            self.shift_manager,
+            review_manager=self.review_manager,
+            availability_manager=self.availability_manager
         )
         self.tab_widget.addTab(self.scheduler_tab, "Scheduler")
 
@@ -120,14 +109,16 @@ class CytologySchedulerWindow(QMainWindow):
         save_button.clicked.connect(self._save_all_data)
         control_layout.addWidget(save_button)
 
-        # Add some stretch so they stay on the left
+        # Add some stretch so these buttons stay on the left
         control_layout.addStretch(1)
 
     def _refresh_all_tabs(self):
         try:
-            # If your new PyQt-based tabs have a refresh method, call them here
-            # e.g. self.staff_tab.refresh()
-            # For demonstration, just a debug message:
+            # If your PyQt-based tabs have a refresh method, call them here:
+            #   self.staff_tab.refresh()
+            #   self.shift_tab.refresh()
+            #   ...
+            # For now, just a debug message:
             self.status_bar.showMessage("All tabs refreshed!")
             print("DEBUG: All tabs refreshed successfully.")
         except Exception as e:
@@ -140,7 +131,6 @@ class CytologySchedulerWindow(QMainWindow):
             self.staff_manager.save_data()
             self.shift_manager.save_data()
             self.availability_manager.save_data()
-            self.constraints_manager.save_data()
 
             QMessageBox.information(self, "Data Saved", "All data saved successfully!")
             print("DEBUG: All data saved successfully.")

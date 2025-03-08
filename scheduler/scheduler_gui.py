@@ -1,156 +1,184 @@
-# scheduler/scheduler_gui.py
-
 import sys
 import json
 import os
 from datetime import datetime, date, timedelta
-from io import StringIO
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QGroupBox,
-    QListWidget, QListWidgetItem, QComboBox, QLineEdit, QDialog, QDialogButtonBox,
-    QMessageBox, QCheckBox, QFileDialog, QTreeWidget, QTreeWidgetItem, QHeaderView,
-    QDateEdit
+    QComboBox, QDialog, QDialogButtonBox, QMessageBox, QDateEdit,
+    QTableWidget, QTableWidgetItem, QHeaderView, QCheckBox, QListWidget
 )
 from PySide6.QtCore import Qt, QDate
+from PySide6.QtGui import QColor, QFont
 
-SCHEDULER_ORDER_FILE = "data/scheduler_order.json"
-EBUS_FRIDAYS_FILE = "data/ebus_fridays.json"
+# If you load effort map from a JSON file, e.g.:
+from scheduler.effort_map_loader import load_effort_map, DEFAULT_EFFORT
 
+# SHIFT_COUNT_DEFAULTS:
+SHIFT_COUNT_DEFAULTS = {"Cyto FNA","Cyto EUS","Cyto MCY","Cyto UTD"}
 
 # ----------------------------------------------------------------
-# Replaces the old DualReorderDialog
+# SHIFT FILTER DIALOG
+# ----------------------------------------------------------------
+class ShiftFilterDialog(QDialog):
+    def __init__(self, parent, shift_list, default_selected=None):
+        super().__init__(parent)
+        self.setWindowTitle("Filter Shifts")
+        self.shift_list = sorted(shift_list)
+
+        if default_selected is None:
+            # interpret None => check all
+            self.default_selected = set(self.shift_list)
+        else:
+            self.default_selected = set(default_selected)
+
+        self.selected_shifts = set()
+        self._build_ui()
+
+    def _build_ui(self):
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        for sh_name in self.shift_list:
+            cb = QCheckBox(sh_name)
+            cb.setChecked(sh_name in self.default_selected)
+            layout.addWidget(cb)
+            setattr(self, f"checkbox_{sh_name}", cb)
+
+        btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        btn_box.accepted.connect(self._on_ok)
+        btn_box.rejected.connect(self.reject)
+        layout.addWidget(btn_box)
+
+    def _on_ok(self):
+        for sh_name in self.shift_list:
+            cb = getattr(self, f"checkbox_{sh_name}")
+            if cb.isChecked():
+                self.selected_shifts.add(sh_name)
+        self.accept()
+
+    def get_selected_shifts(self):
+        return self.selected_shifts
+
+# ----------------------------------------------------------------
+# DUAL REORDER DIALOG
 # ----------------------------------------------------------------
 class DualReorderDialog(QDialog):
     """
-    Dialog for reordering staff & shifts side by side (two list widgets).
+    For reordering staff & shift lists side by side.
     """
-
     def __init__(self, parent, title, staff_items, shift_items, callback):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.callback = callback
-
         self.staff_list = list(staff_items)
         self.shift_list = list(shift_items)
-
         self._build_ui()
 
     def _build_ui(self):
-        main_layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout()
+        self.setLayout(main_layout)
 
-        # A horizontal layout for staff vs shift
         top_layout = QHBoxLayout()
         main_layout.addLayout(top_layout)
 
-        # Left side: Staff reorder
+        # Staff side
         staff_box = QGroupBox("Staff Order")
         top_layout.addWidget(staff_box)
+        from PySide6.QtWidgets import QListWidget, QPushButton, QVBoxLayout
 
-        staff_box_layout = QHBoxLayout(staff_box)
-
-        from PySide6.QtWidgets import QListWidget
+        s_layout = QVBoxLayout(staff_box)
         self.staff_listwidget = QListWidget()
-        staff_box_layout.addWidget(self.staff_listwidget)
+        s_layout.addWidget(self.staff_listwidget)
 
-        staff_btn_layout = QVBoxLayout()
-        staff_box_layout.addLayout(staff_btn_layout)
+        btn_col = QVBoxLayout()
+        s_layout.addLayout(btn_col)
+        up_s = QPushButton("Up")
+        up_s.clicked.connect(self._staff_up)
+        btn_col.addWidget(up_s)
+        down_s = QPushButton("Down")
+        down_s.clicked.connect(self._staff_down)
+        btn_col.addWidget(down_s)
+        btn_col.addStretch()
 
-        up_staff_btn = QPushButton("Up")
-        up_staff_btn.clicked.connect(self._staff_move_up)
-        staff_btn_layout.addWidget(up_staff_btn)
-
-        down_staff_btn = QPushButton("Down")
-        down_staff_btn.clicked.connect(self._staff_move_down)
-        staff_btn_layout.addWidget(down_staff_btn)
-
-        staff_btn_layout.addStretch(1)
-
-        # Right side: Shift reorder
+        # Shift side
         shift_box = QGroupBox("Shift Order")
         top_layout.addWidget(shift_box)
-
-        shift_box_layout = QHBoxLayout(shift_box)
-
+        sh_layout = QVBoxLayout(shift_box)
         self.shift_listwidget = QListWidget()
-        shift_box_layout.addWidget(self.shift_listwidget)
+        sh_layout.addWidget(self.shift_listwidget)
 
-        shift_btn_layout = QVBoxLayout()
-        shift_box_layout.addLayout(shift_btn_layout)
+        btn_col2 = QVBoxLayout()
+        sh_layout.addLayout(btn_col2)
+        up_sh = QPushButton("Up")
+        up_sh.clicked.connect(self._shift_up)
+        btn_col2.addWidget(up_sh)
+        down_sh = QPushButton("Down")
+        down_sh.clicked.connect(self._shift_down)
+        btn_col2.addWidget(down_sh)
+        btn_col2.addStretch()
 
-        up_shift_btn = QPushButton("Up")
-        up_shift_btn.clicked.connect(self._shift_move_up)
-        shift_btn_layout.addWidget(up_shift_btn)
+        from PySide6.QtWidgets import QDialogButtonBox
+        b_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        b_box.accepted.connect(self._on_ok)
+        b_box.rejected.connect(self.reject)
+        main_layout.addWidget(b_box)
 
-        down_shift_btn = QPushButton("Down")
-        down_shift_btn.clicked.connect(self._shift_move_down)
-        shift_btn_layout.addWidget(down_shift_btn)
+        self._populate()
 
-        shift_btn_layout.addStretch(1)
-
-        # Bottom: OK/Cancel
-        btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        btn_box.accepted.connect(self._on_ok)
-        btn_box.rejected.connect(self.reject)
-        main_layout.addWidget(btn_box)
-
-        self._populate_listwidgets()
-
-    def _populate_listwidgets(self):
+    def _populate(self):
         self.staff_listwidget.clear()
-        for item in self.staff_list:
-            self.staff_listwidget.addItem(item)
-
+        for s in self.staff_list:
+            self.staff_listwidget.addItem(s)
         self.shift_listwidget.clear()
-        for item in self.shift_list:
-            self.shift_listwidget.addItem(item)
+        for sh in self.shift_list:
+            self.shift_listwidget.addItem(sh)
 
-    def _staff_move_up(self):
-        row = self.staff_listwidget.currentRow()
-        if row <= 0:
+    def _staff_up(self):
+        r = self.staff_listwidget.currentRow()
+        if r<=0:
             return
-        self.staff_list[row], self.staff_list[row - 1] = self.staff_list[row - 1], self.staff_list[row]
-        self._populate_listwidgets()
-        self.staff_listwidget.setCurrentRow(row - 1)
+        self.staff_list[r], self.staff_list[r-1] = self.staff_list[r-1], self.staff_list[r]
+        self._populate()
+        self.staff_listwidget.setCurrentRow(r-1)
 
-    def _staff_move_down(self):
-        row = self.staff_listwidget.currentRow()
-        if row < 0 or row >= len(self.staff_list) - 1:
+    def _staff_down(self):
+        r = self.staff_listwidget.currentRow()
+        if r<0 or r>= len(self.staff_list)-1:
             return
-        self.staff_list[row], self.staff_list[row + 1] = self.staff_list[row + 1], self.staff_list[row]
-        self._populate_listwidgets()
-        self.staff_listwidget.setCurrentRow(row + 1)
+        self.staff_list[r], self.staff_list[r+1] = self.staff_list[r+1], self.staff_list[r]
+        self._populate()
+        self.staff_listwidget.setCurrentRow(r+1)
 
-    def _shift_move_up(self):
-        row = self.shift_listwidget.currentRow()
-        if row <= 0:
+    def _shift_up(self):
+        r = self.shift_listwidget.currentRow()
+        if r<=0:
             return
-        self.shift_list[row], self.shift_list[row - 1] = self.shift_list[row - 1], self.shift_list[row]
-        self._populate_listwidgets()
-        self.shift_listwidget.setCurrentRow(row - 1)
+        self.shift_list[r], self.shift_list[r-1] = self.shift_list[r-1], self.shift_list[r]
+        self._populate()
+        self.shift_listwidget.setCurrentRow(r-1)
 
-    def _shift_move_down(self):
-        row = self.shift_listwidget.currentRow()
-        if row < 0 or row >= len(self.shift_list) - 1:
+    def _shift_down(self):
+        r = self.shift_listwidget.currentRow()
+        if r<0 or r>= len(self.shift_list)-1:
             return
-        self.shift_list[row], self.shift_list[row + 1] = self.shift_list[row + 1], self.shift_list[row]
-        self._populate_listwidgets()
-        self.shift_listwidget.setCurrentRow(row + 1)
+        self.shift_list[r], self.shift_list[r+1] = self.shift_list[r+1], self.shift_list[r]
+        self._populate()
+        self.shift_listwidget.setCurrentRow(r+1)
 
     def _on_ok(self):
         self.callback(self.staff_list, self.shift_list)
         self.accept()
 
-
 # ----------------------------------------------------------------
-# Replaces the old ManualAssignmentDialog
+# MANUAL ASSIGNMENT DIALOG
 # ----------------------------------------------------------------
 class ManualAssignmentDialog(QDialog):
-    """
-    A dialog for manually assigning staff to shifts in a day/shift grid.
-    Also pre-populates from existing preassignments.
-    """
-    def __init__(self, parent, title, day_list, shift_list, staff_list, callback, existing_preassigned=None):
+    def __init__(
+        self, parent, title,
+        day_list, shift_list, staff_list, callback,
+        existing_preassigned=None
+    ):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.callback = callback
@@ -158,238 +186,300 @@ class ManualAssignmentDialog(QDialog):
         self.shift_list = shift_list
         self.staff_list = staff_list
         self.existing_preassigned = existing_preassigned or {}
-
         self.cell_widgets = {}
-
         self._build_ui()
-        self._populate_existing_assignments()
+        self._populate_existing()
 
     def _build_ui(self):
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
 
         top_frame = QWidget()
         layout.addWidget(top_frame)
 
-        from PySide6.QtWidgets import QGridLayout, QLabel, QComboBox
-        self.grid = QGridLayout(top_frame)
+        from PySide6.QtWidgets import QGridLayout, QLabel, QComboBox, QDialogButtonBox
+        g_layout = QGridLayout(top_frame)
 
-        # corner
         corner_lbl = QLabel("Shift \\ Day")
-        self.grid.addWidget(corner_lbl, 0, 0)
+        g_layout.addWidget(corner_lbl, 0, 0)
 
         import datetime as dt
-        for d_idx, d_str in enumerate(self.day_list):
+        for col_idx, d_str in enumerate(self.day_list):
             d_obj = dt.datetime.strptime(d_str, "%Y-%m-%d")
-            heading_text = d_obj.strftime("%a %d")
-            lbl = QLabel(heading_text)
-            lbl.setAlignment(Qt.AlignCenter)
-            self.grid.addWidget(lbl, 0, d_idx + 1)
+            heading = d_obj.strftime("%a %m/%d")
+            hlbl = QLabel(heading)
+            hlbl.setAlignment(Qt.AlignCenter)
+            g_layout.addWidget(hlbl, 0, col_idx+1)
 
-        for s_idx, shift_name in enumerate(self.shift_list):
-            row_index = s_idx + 1
-            shift_lbl = QLabel(shift_name)
-            self.grid.addWidget(shift_lbl, row_index, 0)
+        for s_idx, sh_name in enumerate(self.shift_list):
+            row_idx = s_idx + 1
+            lab = QLabel(sh_name)
+            g_layout.addWidget(lab, row_idx, 0)
 
-            for d_idx, d_str in enumerate(self.day_list):
+            for col_idx, d_str in enumerate(self.day_list):
                 combo = QComboBox()
                 combo.addItem("None")
-                for stf in self.staff_list:
-                    combo.addItem(stf)
-                self.grid.addWidget(combo, row_index, d_idx + 1)
-                self.cell_widgets[(d_str, shift_name)] = combo
+                for stf_init in self.staff_list:
+                    combo.addItem(stf_init)
+                g_layout.addWidget(combo, row_idx, col_idx+1)
+                self.cell_widgets[(d_str, sh_name)] = combo
 
-        btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        btn_box = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
         btn_box.accepted.connect(self._on_ok)
         btn_box.rejected.connect(self.reject)
         layout.addWidget(btn_box)
 
-        # column stretch so combos expand
-        col_count = len(self.day_list) + 1
-        for c in range(col_count):
-            self.grid.setColumnStretch(c, 1)
+        # stretch
+        cols = len(self.day_list)+1
+        for c in range(cols):
+            g_layout.setColumnStretch(c,1)
 
-    def _populate_existing_assignments(self):
-        for (d_str, shift_name), staff_init in self.existing_preassigned.items():
-            combo = self.cell_widgets.get((d_str, shift_name))
+    def _populate_existing(self):
+        for (d_str, sh_name), stf_init in self.existing_preassigned.items():
+            combo = self.cell_widgets.get((d_str, sh_name))
             if combo:
-                # If staff_init not in combo, add it
-                found = False
+                # ensure stf_init is in combo
+                idx = None
                 for i in range(combo.count()):
-                    if combo.itemText(i) == staff_init:
-                        found = True
-                        combo.setCurrentText(staff_init)
+                    if combo.itemText(i)==stf_init:
+                        idx = i
                         break
-                if not found and staff_init != "None":
-                    combo.addItem(staff_init)
-                    combo.setCurrentText(staff_init)
+                if idx is not None:
+                    combo.setCurrentIndex(idx)
+                else:
+                    combo.addItem(stf_init)
+                    combo.setCurrentText(stf_init)
 
     def _on_ok(self):
-        preassigned = {}
-        for key, combo in self.cell_widgets.items():
+        res = {}
+        for (d_str, sh_name), combo in self.cell_widgets.items():
             chosen = combo.currentText()
-            if chosen and chosen != "None":
-                preassigned[key] = chosen
-        self.callback(preassigned)
+            if chosen and chosen!="None":
+                res[(d_str, sh_name)] = chosen
+        self.callback(res)
         self.accept()
 
-
 # ----------------------------------------------------------------
-# Replaces the old EbusFridayDialog
+# EBUS FRIDAY DIALOG
 # ----------------------------------------------------------------
 class EbusFridayDialog(QDialog):
-    """
-    Manage which Fridays are considered EBUS Fridays.
-    """
     def __init__(self, parent, ebus_list, callback_save):
         super().__init__(parent)
         self.setWindowTitle("Manage EBUS Fridays")
         self.callback_save = callback_save
         self.ebus_dates = set(ebus_list)
-
         self._build_ui()
-        self._populate_list()
+        self._populate()
 
     def _build_ui(self):
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
 
-        label = QLabel("List of EBUS Fridays (YYYY-MM-DD):")
-        layout.addWidget(label)
+        lbl = QLabel("EBUS Fridays (YYYY-MM-DD):")
+        layout.addWidget(lbl)
 
         from PySide6.QtWidgets import QListWidget, QLineEdit, QPushButton, QDialogButtonBox, QHBoxLayout
         self.listwidget = QListWidget()
         layout.addWidget(self.listwidget)
 
-        entry_layout = QHBoxLayout()
-        layout.addLayout(entry_layout)
-
+        hl = QHBoxLayout()
+        layout.addLayout(hl)
         self.new_date_edit = QLineEdit()
         self.new_date_edit.setPlaceholderText("YYYY-MM-DD")
-        entry_layout.addWidget(self.new_date_edit)
+        hl.addWidget(self.new_date_edit)
 
-        add_btn = QPushButton("Add")
-        add_btn.clicked.connect(self._on_add)
-        entry_layout.addWidget(add_btn)
+        add_b = QPushButton("Add")
+        add_b.clicked.connect(self._on_add)
+        hl.addWidget(add_b)
 
-        rm_btn = QPushButton("Remove Selected")
-        rm_btn.clicked.connect(self._on_remove)
-        layout.addWidget(rm_btn)
+        rm_b = QPushButton("Remove Selected")
+        rm_b.clicked.connect(self._on_remove)
+        layout.addWidget(rm_b)
 
-        btn_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        btn_box.accepted.connect(self._on_ok)
-        btn_box.rejected.connect(self.reject)
-        layout.addWidget(btn_box)
+        bb = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        bb.accepted.connect(self._on_ok)
+        bb.rejected.connect(self.reject)
+        layout.addWidget(bb)
 
-    def _populate_list(self):
+    def _populate(self):
         self.listwidget.clear()
-        for date_str in sorted(self.ebus_dates):
-            self.listwidget.addItem(date_str)
+        for d_str in sorted(self.ebus_dates):
+            self.listwidget.addItem(d_str)
 
     def _on_add(self):
-        date_str = self.new_date_edit.text().strip()
-        if not date_str:
-            return
         from datetime import datetime
-        try:
-            dt_obj = datetime.strptime(date_str, "%Y-%m-%d")
-        except ValueError:
-            QMessageBox.critical(self, "Invalid Date", "Date must be YYYY-MM-DD format.")
+        d_str = self.new_date_edit.text().strip()
+        if not d_str:
             return
-        if dt_obj.weekday() != 4:
-            resp = QMessageBox.question(self, "Non-Friday", "This date is not a Friday. Are you sure?")
-            if resp != QMessageBox.Yes:
+        try:
+            dt_obj = datetime.strptime(d_str,"%Y-%m-%d")
+        except ValueError:
+            QMessageBox.critical(self, "Invalid Date","Must be YYYY-MM-DD.")
+            return
+        # check friday
+        if dt_obj.weekday()!=4:
+            r = QMessageBox.question(self, "Not Friday","Date not Friday, proceed?")
+            if r!=QMessageBox.Yes:
                 return
-        if date_str not in self.ebus_dates:
-            self.ebus_dates.add(date_str)
-            self._populate_list()
+        if d_str not in self.ebus_dates:
+            self.ebus_dates.add(d_str)
+            self._populate()
         self.new_date_edit.clear()
 
     def _on_remove(self):
         item = self.listwidget.currentItem()
-        if not item:
-            return
-        date_str = item.text()
-        self.ebus_dates.discard(date_str)
-        self._populate_list()
+        if item:
+            self.ebus_dates.discard(item.text())
+            self._populate()
 
     def _on_ok(self):
-        final_list = sorted(self.ebus_dates)
-        self.callback_save(final_list)
+        self.callback_save(sorted(self.ebus_dates))
         self.accept()
 
 
 # ----------------------------------------------------------------
-# The main SchedulerTab replaced by a PyQt widget
-# with QDateEdit pickers for Start and End date
-# + the missing create_* methods
+# Suppose you have the Analytics code in schedule_review.analytics,
+# and an AnalyticsWidget in schedule_review.analytics_gui
+# We do an import here:
+from schedule_review.analytics import ScheduleAnalytics
+from schedule_review.analytics_gui import AnalyticsWidget
+
+# SHIFT_COUNT_DEFAULTS we defined above:
+# SHIFT_COUNT_DEFAULTS = {"Cyto FNA","Cyto EUS","Cyto MCY","Cyto UTD"}
+
+# ----------------------------------------------------------------
+# The SCHEDULER TAB
 # ----------------------------------------------------------------
 class SchedulerTab(QWidget):
-    def __init__(self, parent, ortools_scheduler, staff_manager, review_manager=None):
+    def __init__(self, parent,
+                 ortools_scheduler,
+                 staff_manager,
+                 shift_manager,
+                 review_manager=None,
+                 availability_manager=None):
         super().__init__(parent)
+
         self.ortools_scheduler = ortools_scheduler
         self.staff_manager = staff_manager
+        self.shift_manager = shift_manager
         self.review_manager = review_manager
+        self.availability_manager = availability_manager
 
         self.last_generated_schedule = None
-        self.role_order = ["Cytologist", "Admin", "Prep Staff", "Unscheduled"]
+        self.role_order = ["Cytologist","Admin","Prep Staff","Unscheduled"]
         self._preassigned = {}
-
         self.staff_order, self.shift_order = self._load_orders_from_file()
         self.ebus_fridays = self._load_ebus_fridays()
 
-        main_layout = QVBoxLayout(self)
+        # We'll store “which shifts for weekly effort” or for shift count if you want.
+        # But for auto display we’ll just pass None or SHIFT_COUNT_DEFAULTS.
+        self.included_shifts_effort = None
+        self.included_shifts_counts = None
 
-        # SHIFT-based table
-        self.bench_box = QGroupBox("Shift-Based Assignments")
-        main_layout.addWidget(self.bench_box)
-        self.bench_box_layout = QVBoxLayout(self.bench_box)
-
-        # STAFF-based table
-        self.role_box = QGroupBox("Role-Based Schedule")
-        main_layout.addWidget(self.role_box)
-        self.role_box_layout = QVBoxLayout(self.role_box)
-
-        # Input Layout (for date pickers + Generate + Send to Review)
-        self.input_layout = QHBoxLayout()
-        main_layout.addLayout(self.input_layout)
-        self._create_input_ui(self.input_layout)
-
-        # Reorder / Manual / EBUS row
-        button_layout = QHBoxLayout()
-        main_layout.addLayout(button_layout)
-        self._create_reorder_button(button_layout)
-        self._create_manual_assign_button(button_layout)
-        self._create_ebus_button(button_layout)
-        button_layout.addStretch(1)
-
-        # SHIFT→Clipboard / STAFF→Clipboard
-        export_layout = QHBoxLayout()
-        main_layout.addLayout(export_layout)
-        shift_clip_btn = QPushButton("SHIFT → Clipboard")
-        shift_clip_btn.clicked.connect(self._copy_bench_clipboard)
-        export_layout.addWidget(shift_clip_btn)
-
-        staff_clip_btn = QPushButton("STAFF → Clipboard")
-        staff_clip_btn.clicked.connect(self._copy_role_clipboard)
-        export_layout.addWidget(staff_clip_btn)
-        export_layout.addStretch(1)
-
-        # Load staff from manager
+        self._build_ui()
         self._load_staff_order_from_manager()
 
-    # -------------- Input UI (date pickers, generate, review) --------------
+    def _build_ui(self):
+        main_layout = QHBoxLayout()
+        self.setLayout(main_layout)
+
+        left_side = QVBoxLayout()
+        main_layout.addLayout(left_side, stretch=3)
+
+        self.bench_box = QGroupBox("Shift-Based Assignments")
+        left_side.addWidget(self.bench_box)
+        self.bench_layout = QVBoxLayout(self.bench_box)
+
+        self.role_box = QGroupBox("Role-Based Schedule")
+        left_side.addWidget(self.role_box)
+        self.role_layout = QVBoxLayout(self.role_box)
+
+        # row for date pickers, generate
+        row_inp = QHBoxLayout()
+        left_side.addLayout(row_inp)
+        self._create_input_ui(row_inp)
+
+        # row for reorder/manual/ebus + filter
+        row_btn = QHBoxLayout()
+        left_side.addLayout(row_btn)
+        self._create_reorder_button(row_btn)
+        self._create_manual_assign_button(row_btn)
+        self._create_ebus_button(row_btn)
+
+        # SHIFT filter (weekly effort)
+        filter_eff_btn = QPushButton("Filter Shifts (Weekly Effort)")
+        filter_eff_btn.clicked.connect(self._on_filter_shifts_effort)
+        row_btn.addWidget(filter_eff_btn)
+
+        # SHIFT count
+        shift_count_btn = QPushButton("Show SHIFT Counts")
+        shift_count_btn.clicked.connect(self._on_show_shift_counts)
+        row_btn.addWidget(shift_count_btn)
+
+        row_btn.addStretch(1)
+
+        # right side => analytics
+        self.analytics_view = AnalyticsWidget(self)
+        main_layout.addWidget(self.analytics_view, stretch=2)
+
+    # -------------- SHIFT filter logic + SHIFT counts --------------
+    def _on_filter_shifts_effort(self):
+        if not self.last_generated_schedule:
+            QMessageBox.warning(self, "No Schedule","Generate schedule first.")
+            return
+        shift_list = self._gather_shifts_from_sched(self.last_generated_schedule)
+        if not shift_list:
+            QMessageBox.information(self,"No Shifts","No shifts in schedule.")
+            return
+
+        dlg = ShiftFilterDialog(self, shift_list, default_selected=None)  # check all by default
+        if dlg.exec()==QDialog.Accepted:
+            self.included_shifts_effort = dlg.get_selected_shifts()
+            analyzer = ScheduleAnalytics()
+            weekly_data = analyzer.calc_weekly_effort(
+                {"assignments": self.last_generated_schedule},
+                included_shifts=self.included_shifts_effort
+            )
+            self.analytics_view.display_weekly_effort_bar(weekly_data)
+
+    def _on_show_shift_counts(self):
+        if not self.last_generated_schedule:
+            QMessageBox.warning(self,"No Schedule","Generate schedule first.")
+            return
+        shift_list = self._gather_shifts_from_sched(self.last_generated_schedule)
+        if not shift_list:
+            QMessageBox.information(self,"No Shifts","No shifts in schedule.")
+            return
+
+        dlg = ShiftFilterDialog(self, shift_list, default_selected=SHIFT_COUNT_DEFAULTS)
+        if dlg.exec()==QDialog.Accepted:
+            self.included_shifts_counts = dlg.get_selected_shifts()
+            analyzer = ScheduleAnalytics()
+            shift_counts = analyzer.calc_shift_counts(
+                {"assignments": self.last_generated_schedule},
+                included_shifts=self.included_shifts_counts
+            )
+            self.analytics_view.display_shift_count_bar(shift_counts)
+
+    def _gather_shifts_from_sched(self, sched):
+        sset = set()
+        for day_str, recs in sched.items():
+            for r in recs:
+                sset.add(r.get("shift",""))
+        return sorted(sset)
+
+    # -------------- input UI, reorder, manual, EBUS --------------
     def _create_input_ui(self, layout):
         layout.addWidget(QLabel("Start Date:"))
-
-        # QDateEdit for start date
         self.start_dateedit = QDateEdit()
-        self.start_dateedit.setDate(QDate(2025, 1, 6))  # default
+        self.start_dateedit.setDate(QDate(2025,1,6))
         self.start_dateedit.setCalendarPopup(True)
         self.start_dateedit.dateChanged.connect(self._auto_set_end_date)
         layout.addWidget(self.start_dateedit)
 
         layout.addWidget(QLabel("End Date:"))
         self.end_dateedit = QDateEdit()
-        self.end_dateedit.setDate(QDate(2025, 1, 10))
+        self.end_dateedit.setDate(QDate(2025,1,10))
         self.end_dateedit.setCalendarPopup(True)
         layout.addWidget(self.end_dateedit)
 
@@ -397,114 +487,95 @@ class SchedulerTab(QWidget):
         gen_btn.clicked.connect(self.generate_schedule)
         layout.addWidget(gen_btn)
 
-        review_btn = QPushButton("Send to Schedule Review →")
-        review_btn.clicked.connect(self._on_send_to_review)
-        layout.addWidget(review_btn)
+        rev_btn = QPushButton("Send to Schedule Review →")
+        rev_btn.clicked.connect(self._on_send_to_review)
+        layout.addWidget(rev_btn)
 
         layout.addStretch(1)
 
     def _auto_set_end_date(self, qdate):
-        """
-        Called whenever the user picks a new start date.
-        We'll set the End Date to the Friday of that same week.
-        """
         dt_s = date(qdate.year(), qdate.month(), qdate.day())
-        offset = (4 - dt_s.weekday()) % 7
-        dt_end = dt_s + timedelta(days=offset)
+        offset = (4 - dt_s.weekday())%7
+        dt_e = dt_s + timedelta(days=offset)
+        self.end_dateedit.setDate(QDate(dt_e.year, dt_e.month, dt_e.day))
 
-        new_qdate = QDate(dt_end.year, dt_end.month, dt_end.day)
-        self.end_dateedit.setDate(new_qdate)
-    # -------------- Reorder Button + method --------------
-    def _create_reorder_button(self, parent_layout):
-        reorder_btn = QPushButton("Reorder Staff & Shifts")
-        reorder_btn.clicked.connect(self._open_reorder_dialog)
-        parent_layout.addWidget(reorder_btn)
+    def _create_reorder_button(self, layout):
+        b = QPushButton("Reorder Staff & Shifts")
+        b.clicked.connect(self._open_reorder_dialog)
+        layout.addWidget(b)
 
     def _open_reorder_dialog(self):
-        def reorder_callback(new_staff_list, new_shift_list):
-            self.staff_order = new_staff_list
-            self.shift_order = new_shift_list
+        def reorder_cb(new_staff, new_shifts):
+            self.staff_order = new_staff
+            self.shift_order = new_shifts
             self._save_orders_to_file()
-            QMessageBox.information(self, "Order Updated", "Staff & shift order updated successfully!")
+            QMessageBox.information(self,"Order Updated","Staff & shift order updated.")
             self._refresh_schedule_display()
 
-        dialog = DualReorderDialog(
-            self,
-            "Reorder Staff & Shifts",
-            self.staff_order,
-            self.shift_order,
-            reorder_callback
-        )
-        dialog.exec()
+        d = DualReorderDialog(self,"Reorder Staff & Shifts",
+                              self.staff_order,
+                              self.shift_order,
+                              reorder_cb)
+        d.exec()
 
-    # -------------- Manual Assignments Button + method --------------
-    def _create_manual_assign_button(self, parent_layout):
-        assign_btn = QPushButton("Manual Assignments")
-        assign_btn.clicked.connect(self._open_manual_dialog)
-        parent_layout.addWidget(assign_btn)
+    def _create_manual_assign_button(self, layout):
+        b = QPushButton("Manual Assignments")
+        b.clicked.connect(self._open_manual_dialog)
+        layout.addWidget(b)
 
     def _open_manual_dialog(self):
-        # parse QDateEdit -> python date
         dt_s = date(self.start_dateedit.date().year(),
                     self.start_dateedit.date().month(),
                     self.start_dateedit.date().day())
         dt_e = date(self.end_dateedit.date().year(),
                     self.end_dateedit.date().month(),
                     self.end_dateedit.date().day())
-
-        if dt_e < dt_s:
-            QMessageBox.critical(self, "Invalid Date", "End date cannot be before start date.")
+        if dt_e<dt_s:
+            QMessageBox.critical(self,"Invalid Date","End date < start date.")
             return
 
         day_list = []
-        cursor = dt_s
-        while cursor <= dt_e:
-            if cursor.weekday() < 5:
-                day_list.append(cursor.strftime("%Y-%m-%d"))
-            cursor += timedelta(days=1)
+        cur = dt_s
+        while cur<=dt_e:
+            if cur.weekday()<5:
+                day_list.append(cur.strftime("%Y-%m-%d"))
+            cur+= timedelta(days=1)
 
-        all_shifts = self.ortools_scheduler.shift_manager.list_shifts()
-        shift_name_map = {sh.name: sh for sh in all_shifts}
-        shift_ordered = [sh for sh in self.shift_order if sh in shift_name_map]
-        leftover_shifts = [sh for sh in shift_name_map.keys() if sh not in shift_ordered]
-        final_shifts = shift_ordered + leftover_shifts
+        all_shifts = self.shift_manager.list_shifts()
+        sh_map = {sh.name:sh for sh in all_shifts}
+        sh_ordered = [x for x in self.shift_order if x in sh_map]
+        leftover = [x for x in sh_map if x not in sh_ordered]
+        final_sh = sh_ordered + leftover
 
-        staff_objs = self.staff_manager.list_staff()
-        staff_inits = [s_obj.initials for s_obj in staff_objs]
+        st_objs = self.staff_manager.list_staff()
+        st_inits = [so.initials for so in st_objs]
 
-        def on_ok(preassigned_dict):
-            self._preassigned.update(preassigned_dict)
-            QMessageBox.information(self, "Manual Assignments", "Your manual picks have been stored.")
+        def on_ok(pdict):
+            self._preassigned.update(pdict)
+            QMessageBox.information(self,"Manual Assignments","Assignments updated in memory.")
             self.generate_schedule()
 
-        dialog = ManualAssignmentDialog(
-            self,
-            "Manual Assignments",
-            day_list,
-            final_shifts,
-            staff_inits,
-            on_ok,
+        d = ManualAssignmentDialog(
+            self,"Manual Assignments",
+            day_list, final_sh, st_inits, on_ok,
             existing_preassigned=self._preassigned
         )
-        dialog.exec()
+        d.exec()
 
-    # -------------- EBUS Button + method --------------
-    def _create_ebus_button(self, parent_layout):
-        ebus_btn = QPushButton("Manage EBUS Fridays")
-        ebus_btn.clicked.connect(self._open_ebus_dialog)
-        parent_layout.addWidget(ebus_btn)
+    def _create_ebus_button(self, layout):
+        b = QPushButton("Manage EBUS Fridays")
+        b.clicked.connect(self._open_ebus_dialog)
+        layout.addWidget(b)
 
     def _open_ebus_dialog(self):
-        def save_ebus_list(new_list):
-            self.ebus_fridays = new_list
+        def saver(new_dates):
+            self.ebus_fridays = new_dates
             self._save_ebus_fridays()
-            QMessageBox.information(self, "EBUS Fridays Updated",
-                                    "List of EBUS Fridays was updated and saved.")
+            QMessageBox.information(self,"EBUS Fridays Updated","Saved new EBUS list.")
+        d = EbusFridayDialog(self, self.ebus_fridays, saver)
+        d.exec()
 
-        dialog = EbusFridayDialog(self, self.ebus_fridays, save_ebus_list)
-        dialog.exec()
-
-    # -------------- Generate the schedule --------------
+    # -------------- Generate Schedule => also auto-display 2 charts --------------
     def generate_schedule(self):
         self._load_staff_order_from_manager()
 
@@ -514,249 +585,318 @@ class SchedulerTab(QWidget):
         dt_e = date(self.end_dateedit.date().year(),
                     self.end_dateedit.date().month(),
                     self.end_dateedit.date().day())
-
-        if dt_e < dt_s:
-            QMessageBox.critical(self, "Invalid Date", "End date cannot be before start date.")
+        if dt_e<dt_s:
+            QMessageBox.critical(self,"Invalid Date","End date < start date.")
             return
 
-        start_date_str = dt_s.strftime("%Y-%m-%d")
-        end_date_str = dt_e.strftime("%Y-%m-%d")
+        s_str = dt_s.strftime("%Y-%m-%d")
+        e_str = dt_e.strftime("%Y-%m-%d")
 
-        # Check EBUS
-        is_ebus_friday = False
-        cursor = dt_s
-        while cursor <= dt_e:
-            if cursor.weekday() == 4:  # Friday
-                if cursor.strftime("%Y-%m-%d") in self.ebus_fridays:
-                    is_ebus_friday = True
+        # check EBUS
+        is_ebus_in_range = False
+        c = dt_s
+        while c<=dt_e:
+            if c.weekday()==4:
+                if c.strftime("%Y-%m-%d") in self.ebus_fridays:
+                    is_ebus_in_range = True
                     break
-            cursor += timedelta(days=1)
+            c+= timedelta(days=1)
 
-        schedule_data = self.ortools_scheduler.generate_schedule(
-            start_date_str,
-            end_date_str,
+        sched_data = self.ortools_scheduler.generate_schedule(
+            s_str,e_str,
             preassigned=self._preassigned,
-            is_ebus_friday=is_ebus_friday
+            is_ebus_friday=is_ebus_in_range
         )
-        if not schedule_data:
-            QMessageBox.information(self, "No Schedule", "No feasible solution or empty schedule.")
+        if not sched_data:
+            QMessageBox.information(self,"No Schedule","No feasible solution or empty.")
             return
 
-        self.last_generated_schedule = schedule_data
+        self.last_generated_schedule = sched_data
 
-        # Clear old SHIFT/ROLE widgets
-        for i in reversed(range(self.bench_box_layout.count())):
-            w = self.bench_box_layout.itemAt(i).widget()
-            if w:
-                w.deleteLater()
-        for i in reversed(range(self.role_box_layout.count())):
-            w = self.role_box_layout.itemAt(i).widget()
-            if w:
-                w.deleteLater()
+        # clear old SHIFT/ROLE
+        for i in reversed(range(self.bench_layout.count())):
+            w = self.bench_layout.itemAt(i).widget()
+            if w: w.deleteLater()
+        for i in reversed(range(self.role_layout.count())):
+            w = self.role_layout.itemAt(i).widget()
+            if w: w.deleteLater()
 
-        self._build_bench_table(schedule_data)
-        self._build_role_table(schedule_data)
+        self._build_bench_table(sched_data)
+        self._build_role_table(sched_data)
 
-        QMessageBox.information(self, "Schedule Generated", "Schedule generated successfully!")
+        QMessageBox.information(self,"Schedule Generated","Schedule generated successfully!")
 
-    # -------------- Send to Schedule Review --------------
+        # NOW auto-display the charts
+        self._auto_display_charts()
+
+    def _auto_display_charts(self):
+        """
+        After schedule is generated, automatically display:
+          1) Weekly Effort (all shifts)
+          2) SHIFT Count (with SHIFT_COUNT_DEFAULTS)
+        """
+        if not self.last_generated_schedule:
+            return
+
+        # 1) Weekly Effort (all shifts => included_shifts=None)
+        analyzer = ScheduleAnalytics()
+        weekly_data = analyzer.calc_weekly_effort(
+            {"assignments": self.last_generated_schedule},
+            included_shifts=None   # i.e. sum all
+        )
+        self.analytics_view.display_weekly_effort_bar(weekly_data)
+
+        # 2) SHIFT Count (with SHIFT_COUNT_DEFAULTS)
+        shift_counts = analyzer.calc_shift_counts(
+            {"assignments": self.last_generated_schedule},
+            included_shifts=SHIFT_COUNT_DEFAULTS
+        )
+        # We'll call the method that draws shift-count bar:
+        self.analytics_view.display_shift_count_bar(shift_counts)
+
+
     def _on_send_to_review(self):
         if not self.last_generated_schedule:
-            QMessageBox.warning(self, "No Schedule", "Please generate a schedule before sending to review.")
+            QMessageBox.warning(self,"No Schedule","Generate a schedule first.")
             return
-
         dt_s = date(self.start_dateedit.date().year(),
                     self.start_dateedit.date().month(),
                     self.start_dateedit.date().day())
         dt_e = date(self.end_dateedit.date().year(),
                     self.end_dateedit.date().month(),
                     self.end_dateedit.date().day())
+        s_str = dt_s.strftime("%Y-%m-%d")
+        e_str = dt_e.strftime("%Y-%m-%d")
 
-        start_date_str = dt_s.strftime("%Y-%m-%d")
-        end_date_str = dt_e.strftime("%Y-%m-%d")
-
-        schedule_data = {
-            "start_date": start_date_str,
-            "end_date": end_date_str,
+        payload = {
+            "start_date": s_str,
+            "end_date": e_str,
             "assignments": self.last_generated_schedule,
             "created_at": datetime.now().isoformat()
         }
-
         if self.review_manager:
-            self.review_manager.commit_schedule(schedule_data)
+            self.review_manager.commit_schedule(payload)
             QMessageBox.information(
-                self, "Schedule Review",
-                f"Schedule sent to review successfully!\nFile saved for {start_date_str} → {end_date_str}."
+                self,"Schedule Review",
+                f"Schedule sent to review for {s_str}→{e_str}."
             )
         else:
-            QMessageBox.critical(self, "No Review Manager",
-                                 "No review_manager is attached to the SchedulerTab!")
+            QMessageBox.critical(self,"No Review Manager","No review_manager attached to SchedulerTab!")
 
-    # -------------- SHIFT x DAY Table --------------
+
+    # -------------- SHIFT-based Table --------------
     def _build_bench_table(self, schedule_data):
-        bench_tree = QTreeWidget()
-        bench_tree.setColumnCount(1 + len(schedule_data.keys()))
-        day_list = self._date_range(schedule_data)
-        columns = ["Shift"] + day_list
-        bench_tree.setHeaderLabels(columns)
+        day_list = sorted(schedule_data.keys(), key=lambda d: datetime.strptime(d, "%Y-%m-%d"))
+        def friendly_date(d_str):
+            return datetime.strptime(d_str,"%Y-%m-%d").strftime("%a %-m/%-d")
+        headers = [friendly_date(d) for d in day_list]
 
+        # shift map
         shift_map = {}
-        for day_str, assigns in schedule_data.items():
-            for rec in assigns:
-                shift_name = rec["shift"]
-                staff_init = rec["assigned_to"]
-                if shift_name not in shift_map:
-                    shift_map[shift_name] = {}
-                shift_map[shift_name][day_str] = staff_init
+        for d_str, recs in schedule_data.items():
+            for rec in recs:
+                sh = rec["shift"]
+                who = rec["assigned_to"]
+                shift_map.setdefault(sh, {})[d_str] = who
 
-        shift_in_schedule = list(shift_map.keys())
-        shift_ordered = [sh for sh in self.shift_order if sh in shift_in_schedule]
-        leftover_shifts = [sh for sh in shift_in_schedule if sh not in shift_ordered]
-        shift_ordered += leftover_shifts
+        in_sched = list(shift_map.keys())
+        sh_ordered = [x for x in self.shift_order if x in in_sched]
+        leftover = [x for x in in_sched if x not in sh_ordered]
+        sh_ordered += leftover
 
-        for sh_name in shift_ordered:
-            if sh_name not in shift_map:
-                continue
+        row_count = len(sh_ordered)
+        col_count = len(day_list)
+        table = QTableWidget(row_count, col_count)
+        table.setHorizontalHeaderLabels(headers)
+        table.setVerticalHeaderLabels(sh_ordered)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.setFont(QFont(table.font().family(), table.font().pointSize() - 2))
+
+        def get_shift_obj(sh_name):
+            for s in self.shift_manager.list_shifts():
+                if s.name == sh_name:
+                    return s
+            return None
+
+        for r, sh_name in enumerate(sh_ordered):
             day_dict = shift_map[sh_name]
+            sh_obj = get_shift_obj(sh_name)
+            for c, d_str in enumerate(day_list):
+                st_init = day_dict.get(d_str,"")
+                if st_init=="Unassigned":
+                    st_init="OPEN"
+                item = QTableWidgetItem(st_init)
+                if st_init=="OPEN" and sh_obj and getattr(sh_obj,"can_remain_open",False):
+                    item.setBackground(QColor("yellow"))
+                    item.setForeground(QColor("black"))
+                table.setItem(r,c,item)
 
-            row_data = [sh_name]
-            for d in day_list:
-                assigned = day_dict.get(d, "")
-                if assigned == "Unassigned":
-                    assigned = ""
-                row_data.append(assigned)
+        self.bench_layout.addWidget(table)
 
-            item = QTreeWidgetItem(row_data)
-            bench_tree.addTopLevelItem(item)
-
-        bench_tree.header().setSectionResizeMode(QHeaderView.Stretch)
-        self.bench_box_layout.addWidget(bench_tree)
-
-    # -------------- STAFF x DAY Table --------------
+    # -------------- ROLE-based Table --------------
     def _build_role_table(self, schedule_data):
-        role_tree = QTreeWidget()
-        day_list = self._date_range(schedule_data)
-        columns = ["Staff (Role)"] + day_list
-        role_tree.setColumnCount(len(columns))
-        role_tree.setHeaderLabels(columns)
+        day_list = sorted(schedule_data.keys(), key=lambda d: datetime.strptime(d, "%Y-%m-%d"))
+        def friendly_date(d_str):
+            return datetime.strptime(d_str,"%Y-%m-%d").strftime("%a %-m/%-d")
+        headers = [friendly_date(x) for x in day_list]
 
+        # staff->role
+        stf_role = {}
+        for s_obj in self.staff_manager.list_staff():
+            if s_obj.role in ["Cytologist","Admin","Prep Staff"]:
+                stf_role[s_obj.initials] = s_obj.role
+            else:
+                stf_role[s_obj.initials] = "Unscheduled"
+
+        # role_map => role -> { init -> {day->shift} }
         role_map = {}
-        staff_role_map = {}
-
-        all_staff_objs = self.staff_manager.list_staff()
-        for s_obj in all_staff_objs:
-            r = s_obj.role if s_obj.role in ["Cytologist", "Admin", "Prep Staff"] else "Unscheduled"
-            staff_role_map[s_obj.initials] = r
-
-        for day_str, assigns in schedule_data.items():
-            for rec in assigns:
-                shift_name = rec["shift"]
-                staff_init = rec["assigned_to"]
-                if staff_init == "Unassigned":
+        for d_str, recs in schedule_data.items():
+            for rec in recs:
+                st_init = rec["assigned_to"]
+                if st_init=="Unassigned":
                     continue
-                schedule_role = rec.get("role", None)
-                if not schedule_role or schedule_role == "Unknown":
-                    schedule_role = staff_role_map.get(staff_init, "Unscheduled")
+                shift_nm = rec["shift"]
+                assigned_role = rec.get("role","") or stf_role.get(st_init,"Unscheduled")
+                role_map.setdefault(assigned_role,{}).setdefault(st_init,{})[d_str] = shift_nm
 
-                if schedule_role not in role_map:
-                    role_map[schedule_role] = {}
-                if staff_init not in role_map[schedule_role]:
-                    role_map[schedule_role][staff_init] = {}
-                role_map[schedule_role][staff_init][day_str] = shift_name
+        # ensure all staff
+        for st_init, ro in stf_role.items():
+            role_map.setdefault(ro,{}).setdefault(st_init,{})
 
-        for s_init, r in staff_role_map.items():
-            if r not in role_map:
-                role_map[r] = {}
-            if s_init not in role_map[r]:
-                role_map[r][s_init] = {}
+        # reorder roles
+        roles_in_sched = list(role_map.keys())
+        role_ordered = ["Cytologist","Admin","Prep Staff","Unscheduled"]
+        leftover = [r for r in roles_in_sched if r not in role_ordered]
+        for rr in leftover:
+            role_ordered.append(rr)
 
-        roles_in_schedule = list(role_map.keys())
-        role_ordered = [r for r in self.role_order if r in roles_in_schedule]
-        leftover_roles = [r for r in roles_in_schedule if r not in role_ordered]
-        role_ordered += leftover_roles
+        # flatten
+        row_entries = []
+        for ro_name in role_ordered:
+            if ro_name not in role_map:
+                continue
+            st_map = role_map[ro_name]
+            staff_in_role = sorted(st_map.keys())
+            for st_init in staff_in_role:
+                row_entries.append((ro_name, st_init))
 
-        for role in role_ordered:
-            heading_item = QTreeWidgetItem([role] + [""] * len(day_list))
-            heading_item.setData(0, Qt.UserRole, "role_heading")
-            role_tree.addTopLevelItem(heading_item)
+        row_count = len(row_entries)
+        col_count = len(day_list)
+        table = QTableWidget(row_count, col_count)
+        table.setHorizontalHeaderLabels(headers)
 
-            staff_map = role_map[role]
-            staff_in_this_role = list(staff_map.keys())
+        vert_labels = []
+        for (rname, sinit) in row_entries:
+            vert_labels.append(f"{rname} - {sinit}")
+        table.setVerticalHeaderLabels(vert_labels)
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        table.setFont(QFont(table.font().family(), table.font().pointSize() - 2))
 
-            staff_ordered = [init for init in self.staff_order if init in staff_in_this_role]
-            leftover_staff = [init for init in staff_in_this_role if init not in staff_ordered]
-            staff_ordered += leftover_staff
+        def get_avail_reason(st_init,d_str):
+            if not self.availability_manager:
+                return ""
+            for rec in self.availability_manager.list_availability():
+                if rec["initials"]==st_init and rec["date"]==d_str:
+                    return rec.get("reason","")
+            return ""
 
-            for s_init in staff_ordered:
-                day_dict = staff_map[s_init]
-                row_vals = [s_init]
-                for d in day_list:
-                    shift_assigned = day_dict.get(d, "")
-                    row_vals.append(shift_assigned)
-                item = QTreeWidgetItem(row_vals)
-                heading_item.addChild(item)
+        def is_holiday(d_str):
+            if not self.availability_manager:
+                return False
+            return self.availability_manager.is_holiday(d_str)
 
-        role_tree.header().setSectionResizeMode(QHeaderView.Stretch)
-        self.role_box_layout.addWidget(role_tree)
+        for r_i, (ro_name, st_init) in enumerate(row_entries):
+            st_day_map = role_map[ro_name][st_init]
+            for c_i, d_str in enumerate(day_list):
+                sh_asg = st_day_map.get(d_str,"")
+                if sh_asg=="Unassigned":
+                    sh_asg=""
+                reason = get_avail_reason(st_init,d_str)
 
-    # -------------- Utility --------------
-    def _date_range(self, schedule_data):
-        return sorted(schedule_data.keys(), key=lambda d: datetime.strptime(d, "%Y-%m-%d"))
+                if reason:
+                    if sh_asg:
+                        text = f"{sh_asg} ({reason})"
+                    else:
+                        text = reason
+                else:
+                    text = sh_asg
 
-    def _copy_bench_clipboard(self):
-        QMessageBox.information(self, "Copy", "SHIFT x DAY table to clipboard not implemented yet.")
+                item = QTableWidgetItem(text)
 
-    def _copy_role_clipboard(self):
-        QMessageBox.information(self, "Copy", "STAFF x DAY table to clipboard not implemented yet.")
+                if is_holiday(d_str):
+                    item.setBackground(QColor("teal"))
+                else:
+                    if reason=="PTO":
+                        item.setBackground(QColor("green"))
+                    elif reason in ("0.5 FTE","0.8 FTE"):
+                        item.setBackground(QColor("blue"))
+                    elif reason=="SSL":
+                        item.setBackground(QColor("red"))
+                    elif reason:
+                        item.setBackground(QColor("yellow"))
+                table.setItem(r_i,c_i,item)
+
+        self.role_layout.addWidget(table)
+
+    # -------------- UTILITY --------------
+    def _refresh_schedule_display(self):
+        self.generate_schedule()
 
     def _load_staff_order_from_manager(self):
-        all_staff_objs = self.staff_manager.list_staff()
-        all_inits = [s_obj.initials for s_obj in all_staff_objs]
-        existing_in_self_order = [init for init in self.staff_order if init in all_inits]
-        new_inits = sorted([init for init in all_inits if init not in existing_in_self_order])
-        self.staff_order = existing_in_self_order + new_inits
+        all_st = self.staff_manager.list_staff()
+        all_inits = [x.initials for x in all_st]
+        exist = [xx for xx in self.staff_order if xx in all_inits]
+        new_ones = sorted(set(all_inits)-set(exist))
+        self.staff_order = exist+new_ones
 
     def _load_orders_from_file(self):
-        default_staff_order = [
-            "LB", "KEK", "CAM", "CML", "TL", "NM", "CMM", "GN", "DS", "JZ", "HH", "CS", "AS", "XM", "MB", "EM", "CL",
-            "KL", "LH", "TG", "TS"
+        SCHEDULER_ORDER_FILE = "data/scheduler_order.json"
+        def_staff = [
+            "LB","KEK","CAM","CML","TL","NM","CMM","GN","DS","JZ","HH",
+            "CS","AS","XM","MB","EM","CL","KL","LH","TG","TS"
         ]
-        default_shift_order = [
-            "Cyto Nons 1", "Cyto Nons 2", "Cyto FNA", "Cyto EUS", "Cyto FLOAT", "Cyto 2ND (1)", "Cyto 2ND (2)",
-            "Cyto IMG", "Cyto APERIO", "Cyto MCY", "Cyto UTD", "Cyto UTD IMG",
-            "Prep AM Nons", "Prep GYN", "Prep EBUS", "Prep FNA", "Prep NONS 1", "Prep NONS 2",
-            "Prep Clerical"
+        def_shift = [
+            "Cyto Nons 1","Cyto Nons 2","Cyto FNA","Cyto EUS","Cyto FLOAT",
+            "Cyto 2ND (1)","Cyto 2ND (2)","Cyto IMG","Cyto APERIO","Cyto MCY",
+            "Cyto UTD","Cyto UTD IMG","Prep AM Nons","Prep GYN","Prep EBUS",
+            "Prep FNA","Prep NONS 1","Prep NONS 2","Prep Clerical"
         ]
         if not os.path.exists(SCHEDULER_ORDER_FILE):
-            return (default_staff_order, default_shift_order)
+            return (def_staff, def_shift)
         try:
-            with open(SCHEDULER_ORDER_FILE, "r") as f:
+            with open(SCHEDULER_ORDER_FILE,"r") as f:
                 data = json.load(f)
-            staff_order = data.get("staff_order", default_staff_order)
-            shift_order = data.get("shift_order", default_shift_order)
-            return (staff_order, shift_order)
+            so = data.get("staff_order", def_staff)
+            sho = data.get("shift_order", def_shift)
+            return (so,sho)
         except:
-            return (default_staff_order, default_shift_order)
+            return (def_staff,def_shift)
 
     def _save_orders_to_file(self):
-        data = {"staff_order": self.staff_order, "shift_order": self.shift_order}
+        SCHEDULER_ORDER_FILE = "data/scheduler_order.json"
+        data = {
+            "staff_order": self.staff_order,
+            "shift_order": self.shift_order
+        }
         os.makedirs(os.path.dirname(SCHEDULER_ORDER_FILE), exist_ok=True)
-        with open(SCHEDULER_ORDER_FILE, "w") as f:
-            json.dump(data, f, indent=4)
+        with open(SCHEDULER_ORDER_FILE,"w") as f:
+            json.dump(data,f,indent=4)
 
     def _load_ebus_fridays(self):
+        EBUS_FRIDAYS_FILE = "data/ebus_fridays.json"
         if not os.path.exists(EBUS_FRIDAYS_FILE):
             return []
         try:
-            with open(EBUS_FRIDAYS_FILE, "r") as f:
+            with open(EBUS_FRIDAYS_FILE,"r") as f:
                 data = json.load(f)
-            if isinstance(data, list):
+            if isinstance(data,list):
                 return data
             return []
         except:
             return []
 
     def _save_ebus_fridays(self):
+        EBUS_FRIDAYS_FILE = "data/ebus_fridays.json"
         os.makedirs(os.path.dirname(EBUS_FRIDAYS_FILE), exist_ok=True)
-        with open(EBUS_FRIDAYS_FILE, "w") as f:
-            json.dump(self.ebus_fridays, f, indent=4)
+        with open(EBUS_FRIDAYS_FILE,"w") as f:
+            json.dump(self.ebus_fridays,f,indent=4)

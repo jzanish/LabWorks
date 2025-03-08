@@ -247,12 +247,6 @@
     },
     {
         "initials": "NM",
-        "date": "2025-02-25",
-        "reason": "0.5",
-        "is_holiday": false
-    },
-    {
-        "initials": "NM",
         "date": "2025-02-27",
         "reason": "PTO",
         "is_holiday": false
@@ -334,5 +328,1127 @@
         "date": "2025-01-01",
         "reason": "Holiday",
         "is_holiday": true
+    },
+    {
+        "initials": "ALL",
+        "date": "2024-12-31",
+        "reason": "Holiday",
+        "is_holiday": true
+    },
+    {
+        "initials": "AS",
+        "date": "2025-01-13",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "AS",
+        "date": "2025-01-14",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-02-03",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-02-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-02-18",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-02-19",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-03-24",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-05-08",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-05-09",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-04",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-06",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-11",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-13",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-18",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-20",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-27",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-04",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-06",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-11",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-13",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-18",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-20",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-25",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-27",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-01",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-03",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-08",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-10",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-15",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-17",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-22",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-24",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-29",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-05-01",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-05-06",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-05-08",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-05-13",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-05-15",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-05-20",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-05-22",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-05-27",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-05-29",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-28",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-19",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-03-21",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-04-25",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "ALL",
+        "date": "2025-05-26",
+        "reason": "Holiday",
+        "is_holiday": true
+    },
+    {
+        "initials": "KL",
+        "date": "2025-02-06",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-02-13",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-02-20",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-02-27",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-03-06",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-03-13",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-03-20",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-03-27",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-04-03",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-04-10",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-04-17",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-04-24",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-05-01",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-05-08",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-05-15",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-05-22",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-05-29",
+        "reason": "0.8 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-28",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-02-24",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-03-12",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-03-13",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-03-14",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-04-28",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-05-29",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-05-30",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "AS",
+        "date": "2025-03-03",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "AS",
+        "date": "2025-04-14",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "AS",
+        "date": "2025-04-15",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "AS",
+        "date": "2025-04-16",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-02-03",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-02-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-02-18",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-02-19",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-03-24",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-05-08",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CAM",
+        "date": "2025-05-09",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-02-24",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-02-25",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-03-12",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-03-13",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-03-14",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-04-11",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-05-09",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-31",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-04-01",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-04-02",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-04-03",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-04-04",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-04-07",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-04-08",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-04-09",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-04-10",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-04-11",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CS",
+        "date": "2025-05-23",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CS",
+        "date": "2025-05-27",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "DS",
+        "date": "2025-02-10",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "DS",
+        "date": "2025-05-02",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "DS",
+        "date": "2025-05-16",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "DS",
+        "date": "2025-05-19",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "EM",
+        "date": "2025-04-29",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "EM",
+        "date": "2025-04-30",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "GN",
+        "date": "2025-03-06",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "GN",
+        "date": "2025-03-07",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "GN",
+        "date": "2025-03-10",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "GN",
+        "date": "2025-03-11",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "GN",
+        "date": "2025-04-18",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "GN",
+        "date": "2025-05-06",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "GN",
+        "date": "2025-05-21",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "HH",
+        "date": "2025-02-07",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "HH",
+        "date": "2025-03-04",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "HH",
+        "date": "2025-04-21",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "HH",
+        "date": "2025-05-07",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KEK",
+        "date": "2025-05-12",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KEK",
+        "date": "2025-05-13",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KEK",
+        "date": "2025-05-14",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KEK",
+        "date": "2025-05-15",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-02-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-02-18",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-03-06",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-03-07",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-03-10",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-03-11",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-03-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "KL",
+        "date": "2025-05-16",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LH",
+        "date": "2025-02-14",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LH",
+        "date": "2025-02-19",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LH",
+        "date": "2025-02-20",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LH",
+        "date": "2025-02-21",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TG",
+        "date": "2025-03-21",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-02-24",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-03-12",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-03-13",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-03-14",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-04-28",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-05-29",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TL",
+        "date": "2025-05-30",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TS",
+        "date": "2025-04-03",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TS",
+        "date": "2025-04-04",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TS",
+        "date": "2025-04-07",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TS",
+        "date": "2025-04-24",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TS",
+        "date": "2025-04-25",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TS",
+        "date": "2025-04-28",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "XM",
+        "date": "2025-02-20",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "XM",
+        "date": "2025-02-21",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "XM",
+        "date": "2025-03-28",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "XM",
+        "date": "2025-04-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LH",
+        "date": "2025-02-10",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CL",
+        "date": "2025-02-03",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "TG",
+        "date": "2025-02-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "NM",
+        "date": "2025-02-25",
+        "reason": "0.5 FTE",
+        "is_holiday": false
+    },
+    {
+        "initials": "XM",
+        "date": "2025-03-10",
+        "reason": "SSL",
+        "is_holiday": false
+    },
+    {
+        "initials": "LH",
+        "date": "2025-03-10",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-10",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-11",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-12",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-13",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-14",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-18",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-19",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-20",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-21",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-24",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-25",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-26",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-27",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-28",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "CMM",
+        "date": "2025-03-31",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-03-13",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-03-17",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-03-19",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-03-20",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-03-31",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-04-01",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-04-02",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-04-03",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-04-04",
+        "reason": "PTO",
+        "is_holiday": false
+    },
+    {
+        "initials": "LB",
+        "date": "2025-04-07",
+        "reason": "PTO",
+        "is_holiday": false
     }
 ]

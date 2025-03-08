@@ -93,26 +93,6 @@
         "is_casual": false
     },
     {
-        "initials": "CMM",
-        "start_time": "06:30",
-        "end_time": "15:00",
-        "role": "Cytologist",
-        "trained_shifts": [
-            "Cyto EUS",
-            "Cyto FLOAT",
-            "Cyto IMG",
-            "Cyto UTD",
-            "Cyto UTD IMG",
-            "Cyto Nons 1",
-            "Cyto Nons 2",
-            "Cyto FNA"
-        ],
-        "constraints": {
-            "half_day_shift": false
-        },
-        "is_casual": false
-    },
-    {
         "initials": "GN",
         "start_time": "05:45",
         "end_time": "14:15",

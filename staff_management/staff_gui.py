@@ -5,9 +5,8 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
     QPushButton, QGroupBox, QComboBox, QScrollBar, QAbstractItemView,
     QMessageBox, QDialog, QFormLayout, QLineEdit, QCheckBox, QDialogButtonBox,
-    QFrame, QListWidget
-)
-from PySide6.QtCore import Qt
+    QFrame)
+from PySide6.QtCore import Qt, QItemSelectionModel
 
 class StaffTab(QWidget):
     """

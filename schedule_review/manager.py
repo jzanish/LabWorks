@@ -54,6 +54,48 @@ class ReviewManager:
         """
         return self.schedules
 
+    def list_schedules_info(self):
+        """
+        Returns a list of metadata dicts about each schedule in memory.
+        Example item: {
+          "start_date": "YYYY-MM-DD",
+          "end_date": "YYYY-MM-DD",
+          "version": "20250101_120000",
+          "filename": "2025-01-01__2025-01-07__20250101_120000.json"
+        }
+        So that a dialog can display them in a list, etc.
+        """
+        results = []
+        for sch in self.schedules:
+            start_date = sch.get("start_date", "unknown")
+            end_date   = sch.get("end_date",   "unknown")
+            version    = sch.get("version",    "unknown")
+            # Rebuild the filename the same way commit_schedule does:
+            filename   = f"{start_date}__{end_date}__{version}.json"
+
+            results.append({
+                "start_date": start_date,
+                "end_date":   end_date,
+                "version":    version,
+                "filename":   filename
+            })
+        return results
+
+    def load_schedule(self, filename):
+        """
+        Given a filename, load that schedule's JSON from disk and return it as a dict.
+        """
+        path = os.path.join(self.schedules_dir, filename)
+        if not os.path.exists(path):
+            return None
+        try:
+            with open(path, 'r') as f:
+                data = json.load(f)
+            return data
+        except Exception as e:
+            print(f"Could not load {filename}: {e}")
+            return None
+
     def commit_schedule(self, schedule_data):
         """
         Saves a new schedule to disk with a unique filename.
@@ -61,13 +103,12 @@ class ReviewManager:
         We also insert a 'created_at' if missing, and a 'version' if desired.
         """
         start_date = schedule_data.get("start_date", "unknown")
-        end_date = schedule_data.get("end_date", "unknown")
+        end_date   = schedule_data.get("end_date",   "unknown")
 
         # Add or update some metadata
         if "created_at" not in schedule_data:
             schedule_data["created_at"] = datetime.now().isoformat()
         if "version" not in schedule_data:
-            # for versioning, you can store a numeric or a timestamp-based version
             schedule_data["version"] = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Example filename: "2025-01-10__2025-01-14__20231010_145200.json"
@@ -92,12 +133,14 @@ class ReviewManager:
 
         # Attempt to rebuild the file name and delete from disk
         start_date = schedule_data.get("start_date", "unknown")
-        end_date = schedule_data.get("end_date", "unknown")
-        version = schedule_data.get("version", "unknown")
-        fname = f"{start_date}__{end_date}__{version}.json"
-        fpath = os.path.join(self.schedules_dir, fname)
+        end_date   = schedule_data.get("end_date",   "unknown")
+        version    = schedule_data.get("version",    "unknown")
+        fname      = f"{start_date}__{end_date}__{version}.json"
+        fpath      = os.path.join(self.schedules_dir, fname)
+
         if os.path.exists(fpath):
             os.remove(fpath)
+
         # remove from in-memory list
         self.schedules.pop(index)
         return True
@@ -113,8 +156,8 @@ class ReviewManager:
         old_data = self.schedules[index]
         # We'll keep the same version/filename for a "replace" approach:
         start_date = old_data.get("start_date", "unknown")
-        end_date = old_data.get("end_date", "unknown")
-        version = old_data.get("version", "unknown")
+        end_date   = old_data.get("end_date",   "unknown")
+        version    = old_data.get("version",    "unknown")
 
         # Overwrite in memory
         self.schedules[index] = new_data
@@ -159,18 +202,15 @@ class ReviewManager:
                     staff_shifts[staff_init].add(shift_name)
 
         # Identify staff who never worked "Cyto UTD"
-        # or any other shift you care about
         staff_never_utd = []
         for stf in all_staff:
-            # If stf not in staff_shifts, means they never worked any shift
+            # If stf not in staff_shifts => never worked any shift
             if (stf not in staff_shifts) or ("Cyto UTD" not in staff_shifts[stf]):
                 staff_never_utd.append(stf)
 
-        # Build the final stats structure
         stats = {
             "usage_count": usage_count,
             "staff_never_utd": staff_never_utd,
             "total_schedules": len(self.schedules),
         }
-        # For more advanced stats, you could compute average # of shifts per staff, etc.
         return stats

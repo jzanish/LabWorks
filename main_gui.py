@@ -25,7 +25,7 @@ from schedule_review.schedule_review_gui import ScheduleReviewTab
 class CytologySchedulerWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("CYTOLOGY SCHEDULER - PyQt Edition")
+        self.setWindowTitle("CYTOLOGY SCHEDULER")
         self.resize(1700, 900)
   
         # Create managers

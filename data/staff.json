@@ -333,5 +333,21 @@
             "half_day_shift": false
         },
         "is_casual": false
+    },
+    {
+        "initials": "EW",
+        "start_time": "09:00",
+        "end_time": "17:30",
+        "role": "Cytologist",
+        "trained_shifts": [
+            "Cyto EUS",
+            "Cyto IMG",
+            "Cyto Nons 1",
+            "Cyto Nons 2"
+        ],
+        "constraints": {
+            "half_day_shift": false
+        },
+        "is_casual": false
     }
 ]

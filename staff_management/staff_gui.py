@@ -11,7 +11,7 @@ from PySide6.QtCore import Qt, QItemSelectionModel
 class StaffTab(QWidget):
     """
     A PySide6 version of your StaffTab.
-    Replaces Tkinter frames, listboxes, popups, etc.
+    Replaces Tkinter frames, lightboxes, popups, etc.
     """
     def __init__(self, parent, staff_manager, shift_manager):
         super().__init__(parent)
@@ -163,7 +163,9 @@ class StaffTab(QWidget):
         staff_update: dict with fields for manager.edit_staff
         """
         # staff_update has "initials" plus updated role, times, etc.
-        updated = self.manager.edit_staff(staff_update["initials"], **staff_update)
+        initials = staff_update["initials"]
+        staff_update_clean = {k: v for k, v in staff_update.items() if k != "initials"}
+        updated = self.manager.edit_staff(initials, **staff_update_clean)
         if updated:
             self.populate_list()
         else:
